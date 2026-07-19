@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ShadowScan AI | Security Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Geist:wght@400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#3a3939",
+                    "surface-dim": "#131313",
+                    "tertiary-fixed": "#ffdad6",
+                    "on-primary-container": "#006c71",
+                    "surface-container-low": "#1c1b1b",
+                    "primary": "#e9feff",
+                    "surface-container-highest": "#353534",
+                    "on-error": "#690005",
+                    "surface-variant": "#353534",
+                    "primary-container": "#00f5ff",
+                    "error": "#ffb4ab",
+                    "tertiary-fixed-dim": "#ffb4ab",
+                    "on-tertiary-fixed-variant": "#93000c",
+                    "surface-container": "#201f1f",
+                    "secondary": "#ebb2ff",
+                    "outline-variant": "#3a494a",
+                    "on-secondary": "#520072",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#e5e2e1",
+                    "primary-fixed-dim": "#00dce5",
+                    "on-secondary-fixed": "#320047",
+                    "secondary-fixed-dim": "#ebb2ff",
+                    "surface-container-high": "#2a2a2a",
+                    "background": "#131313",
+                    "on-secondary-fixed-variant": "#74009f",
+                    "on-surface-variant": "#b9caca",
+                    "inverse-surface": "#e5e2e1",
+                    "on-tertiary-container": "#c50015",
+                    "on-primary-fixed-variant": "#004f53",
+                    "on-tertiary-fixed": "#410002",
+                    "secondary-container": "#b600f8",
+                    "outline": "#849495",
+                    "error-container": "#93000a",
+                    "on-tertiary": "#690006",
+                    "surface-container-lowest": "#0e0e0e",
+                    "inverse-primary": "#00696e",
+                    "surface-tint": "#00dce5",
+                    "tertiary": "#fff8f7",
+                    "on-secondary-container": "#fff6fc",
+                    "primary-fixed": "#63f7ff",
+                    "on-primary-fixed": "#002021",
+                    "on-primary": "#003739",
+                    "inverse-on-surface": "#313030",
+                    "surface": "#131313",
+                    "secondary-fixed": "#f8d8ff",
+                    "on-background": "#e5e2e1",
+                    "tertiary-container": "#ffd3ce"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "container-max": "1440px",
+                    "grid-unit": "4px",
+                    "margin-sm": "16px",
+                    "margin-lg": "48px",
+                    "margin-md": "32px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Geist"],
+                    "display-lg": ["Geist"],
+                    "label-caps": ["JetBrains Mono"],
+                    "data-mono": ["JetBrains Mono"],
+                    "body-md": ["Geist"],
+                    "headline-lg": ["Geist"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "data-mono": ["14px", {"lineHeight": "1.5", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #050505;
+            background-image: 
+                linear-gradient(rgba(0, 220, 229, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 220, 229, 0.02) 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #e5e2e1;
+            font-family: 'Geist', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .glass-panel:hover {
+            border-color: rgba(0, 220, 225, 0.2);
+            box-shadow: 0 0 20px rgba(0, 220, 229, 0.05);
+        }
+        .neo-glow {
+            box-shadow: 0 0 15px rgba(0, 220, 229, 0.2);
+        }
+        .radial-progress {
+            --value: 78;
+            --size: 160px;
+            --thickness: 12px;
+            width: var(--size);
+            height: var(--size);
+            background: radial-gradient(closest-side, #0e0e0e 80%, transparent 0 99.9%, #0e0e0e 0), conic-gradient(#00dce5 calc(var(--value) * 1%), #1c1b1b 0);
+            border-radius: 50%;
+        }
+        .terminal-text {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- Side Navigation Anchor -->
+<aside class="h-screen w-64 flex flex-col fixed left-0 top-0 bg-surface-container-lowest border-r border-outline-variant/20 py-6 z-50">
+<div class="px-6 mb-10 flex items-center gap-3">
+<img alt="ShadowScan Logo" class="w-10 h-10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxYXKxfaW6exrNge5SrR7umuGg_cYyxnfjaDiGcCx8lynSJ56-rAEiu0ShJpzMcJgAnspEKSsimUnLs9UwDB2o-HawySRiOmtxKNlSz97Sb_b56xZIB9dijSHYCmfaVRZXjoLpIyga3xHXJT23jRGo9SeiJ2_zjtxyIRLLo4uNoCw-25jdZuIP8ZxbJ8H6JyiGckE_WdjfKPHJyu9P1QfX2a125wZVb3UsLh17bAMZHLRwo3JWz2JLgA"/>
+<div>
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary-fixed leading-none">ShadowScan</h1>
+<p class="text-[10px] font-label-caps text-on-surface-variant uppercase tracking-widest mt-1">AI-Security Elite</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest/50 hover:text-primary transition-all duration-300" href="dashbored.html">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest/50 hover:text-primary transition-all duration-300" href="assistant.html">
+<span class="material-symbols-outlined">security_update_good</span>
+<span class="font-body-md text-body-md">Threat Intelligence</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest/50 hover:text-primary transition-all duration-300" href="scanningpage.html">
+<span class="material-symbols-outlined">radar</span>
+<span class="font-body-md text-body-md">Network Scan</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest/50 hover:text-primary transition-all duration-300" href="history.html">
+<span class="material-symbols-outlined">terminal</span>
+<span class="font-body-md text-body-md">Vulnerability Logs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container/10 text-primary-fixed border-l-2 border-primary-fixed-dim shadow-[0_0_15px_rgba(0,220,229,0.2)]" href="report.html">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-md text-body-md">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest/50 hover:text-primary transition-all duration-300" href="settings_profile.html">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-4 space-y-4">
+<button class="w-full py-3 bg-primary-fixed text-on-primary-fixed font-bold rounded-lg neo-glow active:scale-95 transition-transform">
+                Launch Scan
+            </button>
+<div class="pt-4 border-t border-outline-variant/10">
+<a class="flex items-center gap-3 px-2 py-2 text-on-surface-variant hover:text-primary transition-colors" href="landingpage.html">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="text-sm">Help</span>
+</a>
+<a class="flex items-center gap-3 px-2 py-2 text-on-surface-variant hover:text-error transition-colors" href="login.html">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-sm">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-64 p-margin-md md:p-margin-lg">
+<!-- Top Navigation -->
+<header class="flex justify-between items-center w-full mb-10 h-16 max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<h2 class="font-headline-lg text-headline-lg font-black text-primary-fixed tracking-tight">Security Audit Report</h2>
+<div class="hidden md:flex gap-6">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors uppercase" href="dashbored.html">Platform</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors uppercase" href="assistant.html">Infrastructure</a>
+<a class="font-label-caps text-label-caps text-primary-fixed-dim border-b border-primary-fixed-dim pb-1 uppercase" href="report.html">Monitoring</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">history_edu</span>
+</button>
+</div>
+<div class="w-10 h-10 rounded-full border border-primary-fixed-dim/30 overflow-hidden">
+<img class="object-cover w-full h-full" data-alt="Close up portrait of a professional Chief Security Officer in a high-tech control room environment, sharp focus, cinematic lighting with cyan and magenta neon accents, hyper-realistic photography style for a premium cybersecurity platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqMmLc7hX0lzopdJBupI1qYq_1C7f7NnMNTJULpJsp1IoG4TCeW3B4ZX7l29USvWWfnQWanXxUY3PiSKh69P7Coh5gRSqOASM1goqLNOIZf-ukbPMWqKaSD7puCZY0n2jUdG2Pb7umVC26q474pcLL3ip9NPW3vA9-n--A1u78jQ3n-_HTh0Idm233661efevwIAvOcNYKbe37NCVBNMqu3wkxWtbcEGF60TSNl8eFhpIZbO9yFAJ5NA"/>
+</div>
+</div>
+</header>
+<!-- Report Summary Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter mb-margin-lg">
+<!-- Radial Score Card -->
+<div class="lg:col-span-4 glass-panel rounded-xl p-8 flex flex-col items-center justify-center text-center">
+<div class="relative mb-6">
+<div class="radial-progress flex items-center justify-center">
+<div class="text-center">
+<span class="font-display-lg text-display-lg text-primary-fixed">78</span>
+<span class="block text-[10px] font-label-caps text-on-surface-variant">B+ GRADE</span>
+</div>
+</div>
+</div>
+<h3 class="font-headline-lg text-2xl font-bold mb-2">Overall Security Score</h3>
+<p class="text-on-surface-variant text-sm mb-6">Scan completed 4 minutes ago on <span class="text-primary-fixed">api.shadowscan.ai</span></p>
+<button class="flex items-center gap-2 px-6 py-2 border border-primary-fixed-dim text-primary-fixed-dim font-bold rounded hover:bg-primary-fixed-dim/10 transition-all">
+<span class="material-symbols-outlined text-sm">download</span>
+                    Download PDF Report
+                </button>
+</div>
+<!-- Risk Profile Bento -->
+<div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="glass-panel rounded-xl p-6 flex flex-col justify-between">
+<div>
+<span class="font-label-caps text-[10px] text-error mb-1 block uppercase tracking-widest">Risk Level</span>
+<h4 class="font-headline-lg text-4xl font-black text-error">CRITICAL</h4>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed">3 severe vulnerabilities detected requiring immediate remediation to prevent data leakage.</p>
+</div>
+<div class="md:col-span-2 glass-panel rounded-xl overflow-hidden relative group">
+<div class="absolute inset-0 opacity-20 transition-opacity group-hover:opacity-30">
+
+</div>
+<div class="relative p-6 z-10 flex flex-col h-full justify-between">
+<div>
+<span class="font-label-caps text-[10px] text-primary-fixed-dim mb-1 block uppercase tracking-widest">Active Monitoring</span>
+<h4 class="font-headline-lg text-2xl font-bold">Threat Landscape</h4>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-4">
+<div>
+<span class="text-xs text-on-surface-variant block">Blocked Requests</span>
+<span class="text-2xl font-bold terminal-text">14,290</span>
+</div>
+<div>
+<span class="text-xs text-on-surface-variant block">IP Reputation</span>
+<span class="text-2xl font-bold text-primary-fixed-dim terminal-text">SECURE</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Technical Analysis Grid -->
+<section class="mb-margin-lg">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-6 uppercase tracking-[0.2em]">Technical Deep-Dive</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
+<!-- Headers Analysis -->
+<div class="glass-panel rounded-lg p-5">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary-fixed-dim">policy</span>
+<span class="text-[10px] font-label-caps px-2 py-1 bg-error/10 text-error rounded">WARNING</span>
+</div>
+<h5 class="font-bold text-sm mb-3">Security Headers</h5>
+<div class="space-y-2 text-[12px] terminal-text">
+<div class="flex justify-between items-center py-1 border-b border-white/5">
+<span class="text-on-surface-variant">HSTS</span>
+<span class="text-green-400">ENABLED</span>
+</div>
+<div class="flex justify-between items-center py-1 border-b border-white/5">
+<span class="text-on-surface-variant">CSP</span>
+<span class="text-error">MISSING</span>
+</div>
+<div class="flex justify-between items-center py-1 border-b border-white/5">
+<span class="text-on-surface-variant">X-Frame</span>
+<span class="text-green-400">DENY</span>
+</div>
+</div>
+</div>
+<!-- SSL/TLS Certificate -->
+<div class="glass-panel rounded-lg p-5">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary-fixed-dim">verified_user</span>
+<span class="text-[10px] font-label-caps px-2 py-1 bg-green-500/10 text-green-400 rounded">VALID</span>
+</div>
+<h5 class="font-bold text-sm mb-3">SSL/TLS Cert</h5>
+<div class="space-y-1 text-[12px] terminal-text">
+<p class="text-on-surface-variant">Issuer: <span class="text-primary">DigiCert Global G2</span></p>
+<p class="text-on-surface-variant">Protocol: <span class="text-primary">TLS 1.3</span></p>
+<p class="text-on-surface-variant">Expiry: <span class="text-primary">242 Days</span></p>
+<p class="text-on-surface-variant truncate">Hash: <span class="text-primary">0x88...f2a</span></p>
+</div>
+</div>
+<!-- Tech Stack -->
+<div class="glass-panel rounded-lg p-5">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary-fixed-dim">layers</span>
+<span class="text-[10px] font-label-caps px-2 py-1 bg-surface-container-highest text-on-surface-variant rounded">DETECTED</span>
+</div>
+<h5 class="font-bold text-sm mb-3">Technology Stack</h5>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 bg-white/5 text-[10px] font-medium rounded">Next.js 14</span>
+<span class="px-2 py-1 bg-white/5 text-[10px] font-medium rounded">PostgreSQL</span>
+<span class="px-2 py-1 bg-white/5 text-[10px] font-medium rounded">Redis 7.0</span>
+<span class="px-2 py-1 bg-white/5 text-[10px] font-medium rounded">Nginx</span>
+</div>
+</div>
+<!-- DNS Info -->
+<div class="glass-panel rounded-lg p-5">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary-fixed-dim">dns</span>
+<span class="text-[10px] font-label-caps px-2 py-1 bg-surface-container-highest text-on-surface-variant rounded">INFO</span>
+</div>
+<h5 class="font-bold text-sm mb-3">DNS Information</h5>
+<div class="space-y-1 text-[11px] terminal-text">
+<div class="p-1.5 bg-black/40 rounded flex flex-col">
+<span class="text-[9px] text-primary-fixed-dim/50 uppercase">A-Record</span>
+<span class="text-primary truncate">104.21.34.112</span>
+</div>
+<div class="p-1.5 bg-black/40 rounded flex flex-col">
+<span class="text-[9px] text-primary-fixed-dim/50 uppercase">NS-Nodes</span>
+<span class="text-primary truncate">ns1.shadowscan.ai</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- AI Recommendations & Actions -->
+<section class="grid grid-cols-1 xl:grid-cols-12 gap-gutter">
+<!-- Recommendations List -->
+<div class="xl:col-span-8">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline-lg text-2xl font-bold">AI Recommendations</h3>
+<div class="flex gap-2">
+<span class="flex items-center gap-1 text-xs text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-error"></span> High Priority
+                        </span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="glass-panel rounded-xl p-6 flex gap-4 items-start hover:border-error/30">
+<div class="p-2 rounded-lg bg-error/10 text-error">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-1">
+<h6 class="font-bold">Implement Content Security Policy (CSP)</h6>
+<span class="px-2 py-0.5 bg-error/20 text-error text-[10px] font-bold rounded uppercase">High Priority</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed">Your current infrastructure lacks a Content Security Policy, making it vulnerable to Cross-Site Scripting (XSS) and data injection attacks. ShadowScan AI suggests implementing a strict 'nonce-based' policy.</p>
+<div class="mt-4 flex gap-3">
+<button class="text-[12px] font-bold text-primary-fixed-dim hover:underline">View Mitigation Code</button>
+<button class="text-[12px] font-bold text-on-surface-variant hover:text-white transition-colors">Mark as Resolved</button>
+</div>
+</div>
+</div>
+<div class="glass-panel rounded-xl p-6 flex gap-4 items-start">
+<div class="p-2 rounded-lg bg-secondary-container/10 text-secondary">
+<span class="material-symbols-outlined">update</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-1">
+<h6 class="font-bold">Update Redis version to 7.2.4</h6>
+<span class="px-2 py-0.5 bg-secondary-container/20 text-secondary text-[10px] font-bold rounded uppercase">Medium</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed">Your Redis instance is currently running v7.0. A known CVE-2023-41056 vulnerability exists in versions older than 7.2. Upgrade to patch the integer overflow vulnerability.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Sidebar / Floating Action Area -->
+<div class="xl:col-span-4">
+<div class="glass-panel rounded-xl p-6 sticky top-24 overflow-hidden">
+<div class="absolute -top-12 -right-12 w-32 h-32 bg-primary-container/10 blur-3xl rounded-full"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<div>
+<h5 class="font-bold">ShadowAI Assistant</h5>
+<p class="text-[10px] text-green-400 terminal-text">SYSTEM ONLINE</p>
+</div>
+</div>
+<p class="text-sm text-on-surface-variant mb-6 leading-relaxed">
+                            "I've analyzed your current attack surface. Based on the 3 critical findings, your most immediate threat is a potential DNS poisoning attack. Would you like me to generate a hardened BIND configuration for you?"
+                        </p>
+<div class="space-y-3">
+<button class="w-full py-3 bg-surface-container-highest/50 border border-outline-variant/30 rounded-lg text-sm text-left px-4 hover:border-primary-fixed-dim transition-all flex justify-between items-center group">
+<span>Generate CSP Policy</span>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+</button>
+<button class="w-full py-3 bg-surface-container-highest/50 border border-outline-variant/30 rounded-lg text-sm text-left px-4 hover:border-primary-fixed-dim transition-all flex justify-between items-center group">
+<span>Analyze Log Patterns</span>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+</button>
+</div>
+<div class="mt-8 relative">
+<input class="w-full bg-black/40 border border-white/10 rounded-full py-3 px-5 text-sm terminal-text focus:border-primary-fixed-dim focus:ring-0 transition-all pr-12" placeholder="Ask AI a question..." type="text"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-primary-fixed-dim text-on-primary-fixed rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating AI Action Button (Mobile/Tablet Friendly) -->
+<button class="fixed bottom-8 right-8 w-16 h-16 bg-primary-container text-on-primary-container rounded-full shadow-2xl flex items-center justify-center neo-glow hover:scale-110 active:scale-95 transition-all z-[60] lg:hidden" id="ai-fab">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</button>
+<script>
+        // Micro-interaction for the radial progress
+        document.addEventListener('DOMContentLoaded', () => {
+            const radial = document.querySelector('.radial-progress');
+            let current = 0;
+            const target = 78;
+            
+            const animate = () => {
+                if(current < target) {
+                    current++;
+                    radial.style.setProperty('--value', current);
+                    requestAnimationFrame(animate);
+                }
+            };
+            
+            setTimeout(animate, 500);
+        });
+
+        // Simple scroll interaction for AI Action
+        document.querySelector('#ai-fab')?.addEventListener('click', () => {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body></html>

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ShadowScan AI | User Settings &amp; Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Geist:wght@300;400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#3a3939",
+                    "surface-dim": "#131313",
+                    "tertiary-fixed": "#ffdad6",
+                    "on-primary-container": "#006c71",
+                    "surface-container-low": "#1c1b1b",
+                    "primary": "#e9feff",
+                    "surface-container-highest": "#353534",
+                    "on-error": "#690005",
+                    "surface-variant": "#353534",
+                    "primary-container": "#00f5ff",
+                    "error": "#ffb4ab",
+                    "tertiary-fixed-dim": "#ffb4ab",
+                    "on-tertiary-fixed-variant": "#93000c",
+                    "surface-container": "#201f1f",
+                    "secondary": "#ebb2ff",
+                    "outline-variant": "#3a494a",
+                    "on-secondary": "#520072",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#e5e2e1",
+                    "primary-fixed-dim": "#00dce5",
+                    "on-secondary-fixed": "#320047",
+                    "secondary-fixed-dim": "#ebb2ff",
+                    "surface-container-high": "#2a2a2a",
+                    "background": "#131313",
+                    "on-secondary-fixed-variant": "#74009f",
+                    "on-surface-variant": "#b9caca",
+                    "inverse-surface": "#e5e2e1",
+                    "on-tertiary-container": "#c50015",
+                    "on-primary-fixed-variant": "#004f53",
+                    "on-tertiary-fixed": "#410002",
+                    "secondary-container": "#b600f8",
+                    "outline": "#849495",
+                    "error-container": "#93000a",
+                    "on-tertiary": "#690006",
+                    "surface-container-lowest": "#0e0e0e",
+                    "inverse-primary": "#00696e",
+                    "surface-tint": "#00dce5",
+                    "tertiary": "#fff8f7",
+                    "on-secondary-container": "#fff6fc",
+                    "primary-fixed": "#63f7ff",
+                    "on-primary-fixed": "#002021",
+                    "on-primary": "#003739",
+                    "inverse-on-surface": "#313030",
+                    "surface": "#131313",
+                    "secondary-fixed": "#f8d8ff",
+                    "on-background": "#e5e2e1",
+                    "tertiary-container": "#ffd3ce"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "container-max": "1440px",
+                    "grid-unit": "4px",
+                    "margin-sm": "16px",
+                    "margin-lg": "48px",
+                    "margin-md": "32px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Geist"],
+                    "display-lg": ["Geist"],
+                    "label-caps": ["JetBrains Mono"],
+                    "data-mono": ["JetBrains Mono"],
+                    "body-md": ["Geist"],
+                    "headline-lg": ["Geist"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "data-mono": ["14px", {"lineHeight": "1.5", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #050505;
+            background-image: 
+                linear-gradient(rgba(0, 220, 229, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 220, 229, 0.02) 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #e5e2e1;
+            font-family: 'Geist', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(0, 220, 229, 0.2);
+            box-shadow: 0 0 20px rgba(0, 220, 229, 0.05);
+        }
+
+        .cyber-button-primary {
+            background: #00f5ff;
+            color: #002021;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cyber-button-primary:hover {
+            background: #63f7ff;
+            box-shadow: 0 0 15px rgba(0, 245, 255, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .cyber-input {
+            background: #0e0e0e;
+            border: 1px solid rgba(132, 148, 149, 0.2);
+            color: #e5e2e1;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .cyber-input:focus {
+            outline: none;
+            border-color: #00dce5;
+            box-shadow: 0 0 10px rgba(0, 220, 229, 0.2);
+        }
+
+        .terminal-text {
+            font-family: 'JetBrains Mono', monospace;
+            color: #00dce5;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #1c1b1b; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #353534; }
+
+        .active-tab-glow {
+            box-shadow: 0 0 15px rgba(0, 220, 229, 0.2);
+        }
+
+        /* Nav active state logic placeholder for specific pages */
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar (Shared Component) -->
+<aside class="h-screen w-64 flex flex-col fixed left-0 top-0 bg-surface-container-lowest dark:bg-surface-container-lowest border-r border-outline-variant/20 z-50">
+<div class="px-6 py-8">
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary-fixed tracking-tight">ShadowScan</h1>
+<p class="text-[10px] font-label-caps text-primary-fixed-dim uppercase tracking-[0.2em] mt-1">AI-Security Elite</p>
+</div>
+<nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest/50 hover:text-primary transition-all duration-300 rounded-lg group" href="dashbored.html">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest/50 hover:text-primary transition-all duration-300 rounded-lg group" href="assistant.html">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">security_update_good</span>
+<span class="font-body-md text-body-md">Threat Intelligence</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest/50 hover:text-primary transition-all duration-300 rounded-lg group" href="scanningpage.html">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">radar</span>
+<span class="font-body-md text-body-md">Network Scan</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest/50 hover:text-primary transition-all duration-300 rounded-lg group" href="history.html">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">terminal</span>
+<span class="font-body-md text-body-md">Vulnerability Logs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-highest/50 hover:text-primary transition-all duration-300 rounded-lg group" href="report.html">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">analytics</span>
+<span class="font-body-md text-body-md">Reports</span>
+</a>
+<!-- SETTINGS ACTIVE -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container/10 text-primary-fixed border-l-2 border-primary-fixed-dim shadow-[0_0_15px_rgba(0,220,229,0.2)] font-body-md text-body-md rounded-r-lg group" href="settings_profile.html">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="px-6 py-6 border-t border-outline-variant/10">
+<button class="w-full mb-4 cyber-button-primary py-2 px-4 rounded text-xs">Launch Scan</button>
+<div class="space-y-4">
+<div class="flex items-center gap-3 text-on-surface-variant cursor-pointer hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-[18px]">help_outline</span>
+<span class="font-label-caps text-label-caps">Help</span>
+</div>
+<div class="flex items-center gap-3 text-error cursor-pointer hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+<span class="font-label-caps text-label-caps">Logout</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col min-h-screen pb-12">
+<!-- TopNavBar (Shared Component Logic) -->
+<header class="sticky top-0 z-40 bg-surface/70 backdrop-blur-xl border-b border-white/5 h-16 flex justify-between items-center px-margin-lg">
+<div class="flex items-center gap-8">
+<h2 class="font-headline-lg text-headline-lg-mobile font-black text-primary-fixed tracking-tight">ShadowScan AI</h2>
+<div class="hidden md:flex gap-6">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="dashbored.html">Platform</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="assistant.html">Infrastructure</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="scanningpage.html">Monitoring</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden lg:block">
+<input class="cyber-input py-1 px-4 pl-10 rounded-full text-sm w-64" placeholder="Search systems..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary-fixed cursor-pointer">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary-fixed cursor-pointer">history_edu</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary-fixed-dim/30">
+<img class="w-full h-full object-cover" data-alt="A highly detailed close-up portrait of a Chief Security Officer wearing a futuristic sleek headset. The lighting is cinematic with deep blue and cyan neon rim lights against a dark background, reflecting the high-stakes cyber security environment of ShadowScan AI. Professional aesthetic with sharp focus on the detailed textures of the tech equipment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEaKNK2rmpXYH9PvQ-tcJuWehKzwrk0eJ4ATq8n-TZJQkS8jXG80BLDB34h_4oiqd3LLtSXpDXklpsAxq7au-WPEe88NQK3serJfnG_VXBrUAyWbC0Ps2cblP0RRe-50K15ZF6SGvQfYgy95W5B-PyIHr5AjJN2oCpq9-gVOR873Qc47e8a2iH3n6-UBUkj1h6ZZiWFnlD_sFtk0TVx5mT-wxKK9zc9-OQWO9260wX-z_PZzsOTKrSHA"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="px-margin-lg pt-10">
+<!-- Header Section -->
+<div class="mb-10">
+<h3 class="font-headline-lg text-headline-lg text-on-surface mb-2">User Profile &amp; Platform Settings</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Manage your identity, security protocols, and system interface preferences.</p>
+</div>
+<!-- Bento Layout Container -->
+<div class="grid grid-cols-12 gap-6 items-start">
+<!-- Profile & Security Summary (Left Column) -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<!-- User Card -->
+<section class="glass-panel rounded-xl p-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-[80px]">shield_person</span>
+</div>
+<div class="flex flex-col items-center text-center">
+<div class="relative mb-4">
+<div class="w-24 h-24 rounded-full border-2 border-primary-fixed-dim p-1">
+<div class="w-full h-full rounded-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a futuristic tech executive with subtle holographic data displays reflecting on their skin. The background is a minimalist, ultra-dark cybernetic laboratory with soft cyan neon glowing tubes. High-contrast lighting and sharp details emphasize a sense of elite technological mastery and impenetrable security leadership." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACbOtjashc6s7CqhnQFrZ8uRNxukUpMJgMueT4DIP6jYOK1xzfT2a38OAXAJVyvjthE6j3Yf0Z4oNmBBfDQcPCpMN94lH1q97-a7dwzsB6JhDbs5RzNadXPU8DDXR5Ntlk4XAFOW9n3iHlA_eY4GwBAYg7mkYUVn6WtUJFtdM_MrZMVXTN1GQVVhgl6yhUfAnnJaWFda0UN7p3keRvfubhGjPwKFqml0kSZz9_IbCppBVXxSR5MwZ6oQ"/>
+</div>
+</div>
+<div class="absolute bottom-0 right-0 bg-primary-fixed-dim text-on-primary-fixed p-1 rounded-full border-2 border-surface-dim">
+<span class="material-symbols-outlined text-[16px] block" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+</div>
+<h4 class="font-headline-lg text-headline-lg-mobile text-on-surface">Alex Rivera</h4>
+<p class="font-label-caps text-label-caps text-primary-fixed-dim mb-4">Security Operations Lead</p>
+<div class="grid grid-cols-2 gap-4 w-full pt-4 border-t border-white/5">
+<div class="text-left">
+<p class="text-[10px] font-label-caps text-on-surface-variant uppercase">Role</p>
+<p class="font-data-mono text-data-mono text-on-surface">Administrator</p>
+</div>
+<div class="text-left">
+<p class="text-[10px] font-label-caps text-on-surface-variant uppercase">ID</p>
+<p class="font-data-mono text-data-mono text-on-surface">SH-882-QX</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Security Status -->
+<section class="glass-panel rounded-xl p-6">
+<div class="flex justify-between items-center mb-4">
+<h5 class="font-label-caps text-label-caps text-on-surface">Security Integrity</h5>
+<span class="px-2 py-1 bg-primary-fixed/10 text-primary-fixed text-[10px] font-bold rounded">OPTIMIZED</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-3 bg-surface-container-low rounded">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-fixed-dim">key</span>
+<span class="text-sm font-body-md">MFA Status</span>
+</div>
+<span class="text-[10px] font-label-caps text-primary-fixed">ENABLED</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-surface-container-low rounded">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-fixed-dim">history</span>
+<span class="text-sm font-body-md">Last Auth</span>
+</div>
+<span class="text-[10px] font-label-caps text-on-surface-variant">2m ago</span>
+</div>
+<button class="w-full py-2 border border-outline-variant/30 rounded text-[10px] font-label-caps hover:bg-surface-container-highest transition-colors">RUN SECURITY AUDIT</button>
+</div>
+</section>
+</div>
+<!-- Settings Tabs (Right Column) -->
+<div class="col-span-12 lg:col-span-8">
+<div class="glass-panel rounded-xl overflow-hidden">
+<!-- Custom Tab Header -->
+<div class="flex bg-surface-container-lowest border-b border-outline-variant/10 px-2 overflow-x-auto scrollbar-hide">
+<button class="px-6 py-4 font-label-caps text-label-caps text-primary-fixed border-b-2 border-primary-fixed-dim whitespace-nowrap">Account</button>
+<button class="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap">Security</button>
+<button class="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap">API Access</button>
+<button class="px-6 py-4 font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap">Appearance</button>
+</div>
+<!-- Tab Content: Account -->
+<div class="p-8 space-y-10">
+<!-- Personal Info Fields -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-on-surface-variant">Full Name</label>
+<input class="cyber-input w-full p-3 rounded-lg text-sm" type="text" value="Alex Rivera"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-on-surface-variant">Email Address</label>
+<input class="cyber-input w-full p-3 rounded-lg text-sm" type="email" value="alex.r@shadowscan.ai"/>
+</div>
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-on-surface-variant">Timezone</label>
+<select class="cyber-input w-full p-3 rounded-lg text-sm appearance-none">
+<option>UTC (Global Standard)</option>
+<option>EST (Eastern Standard)</option>
+<option>PST (Pacific Standard)</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-on-surface-variant">Language</label>
+<select class="cyber-input w-full p-3 rounded-lg text-sm appearance-none">
+<option>English (Technical)</option>
+<option>Japanese (Elite)</option>
+<option>German (Secure)</option>
+</select>
+</div>
+</div>
+<!-- Notification Preferences -->
+<div>
+<h5 class="font-label-caps text-label-caps text-on-surface mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">notifications_active</span>
+                                    Notification Nodes
+                                </h5>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-surface-container-low/50 rounded-lg border border-white/5">
+<div>
+<p class="font-body-md text-sm font-semibold">Critical Threat Alerts</p>
+<p class="text-xs text-on-surface-variant">Instant push notifications for Level 4+ breaches.</p>
+</div>
+<div class="w-12 h-6 bg-primary-container/20 rounded-full relative cursor-pointer border border-primary-fixed-dim/50">
+<div class="absolute right-1 top-1 w-4 h-4 bg-primary-fixed-dim rounded-full shadow-[0_0_8px_#00dce5]"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-low/50 rounded-lg border border-white/5">
+<div>
+<p class="font-body-md text-sm font-semibold">Network Scan Completion</p>
+<p class="text-xs text-on-surface-variant">Email digests of weekly vulnerability assessments.</p>
+</div>
+<div class="w-12 h-6 bg-surface-container-highest rounded-full relative cursor-pointer border border-outline-variant/30">
+<div class="absolute left-1 top-1 w-4 h-4 bg-outline rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-low/50 rounded-lg border border-white/5">
+<div>
+<p class="font-body-md text-sm font-semibold">Login Activity Logs</p>
+<p class="text-xs text-on-surface-variant">Notification for any new hardware fingerprint login.</p>
+</div>
+<div class="w-12 h-6 bg-primary-container/20 rounded-full relative cursor-pointer border border-primary-fixed-dim/50">
+<div class="absolute right-1 top-1 w-4 h-4 bg-primary-fixed-dim rounded-full shadow-[0_0_8px_#00dce5]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Appearance Section -->
+<div class="pt-6 border-t border-white/5">
+<h5 class="font-label-caps text-label-caps text-on-surface mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">palette</span>
+                                    System Appearance
+                                </h5>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div class="p-4 rounded-xl border border-primary-fixed-dim bg-primary-fixed-dim/5 cursor-pointer active-tab-glow">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary-fixed-dim">dark_mode</span>
+<span class="material-symbols-outlined text-primary-fixed-dim text-[16px]">check_circle</span>
+</div>
+<p class="text-sm font-bold">Cyber Dark</p>
+<p class="text-[10px] text-on-surface-variant">High contrast, neon elements.</p>
+</div>
+<div class="p-4 rounded-xl border border-outline-variant/30 hover:border-primary-fixed-dim/50 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-on-surface-variant">grid_view</span>
+</div>
+<p class="text-sm font-bold">Matrix Elite</p>
+<p class="text-[10px] text-on-surface-variant">Green monospaced terminal aesthetic.</p>
+</div>
+<div class="p-4 rounded-xl border border-outline-variant/30 hover:border-primary-fixed-dim/50 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-on-surface-variant">wb_sunny</span>
+</div>
+<p class="text-sm font-bold">Lab Mode</p>
+<p class="text-[10px] text-on-surface-variant">Clinical light gray and white.</p>
+</div>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="flex justify-end gap-4 pt-8">
+<button class="px-6 py-2 rounded-lg font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-colors">Reset Defaults</button>
+<button class="cyber-button-primary px-10 py-2 rounded-lg">Synchronize Settings</button>
+</div>
+</div>
+</div>
+<!-- Privacy Summary -->
+<div class="mt-6 glass-panel rounded-xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="flex items-center gap-4">
+<div class="p-3 bg-secondary/10 rounded-full">
+<span class="material-symbols-outlined text-secondary">fingerprint</span>
+</div>
+<div>
+<h6 class="font-body-md font-semibold text-sm">Privacy Integrity Profile</h6>
+<p class="text-xs text-on-surface-variant">Your data is encrypted using AES-256 standard protocols.</p>
+</div>
+</div>
+<button class="font-label-caps text-label-caps text-primary-fixed border border-primary-fixed-dim/30 px-4 py-2 rounded hover:bg-primary-fixed/5 transition-all">MANAGE PRIVACY DATA</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions for toggles
+        document.querySelectorAll('.w-12.h-6').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const dot = toggle.querySelector('div');
+                const isOff = dot.classList.contains('left-1');
+                
+                if (isOff) {
+                    dot.classList.remove('left-1', 'bg-outline');
+                    dot.classList.add('right-1', 'bg-primary-fixed-dim', 'shadow-[0_0_8px_#00dce5]');
+                    toggle.classList.remove('bg-surface-container-highest');
+                    toggle.classList.add('bg-primary-container/20', 'border-primary-fixed-dim/50');
+                } else {
+                    dot.classList.add('left-1', 'bg-outline');
+                    dot.classList.remove('right-1', 'bg-primary-fixed-dim', 'shadow-[0_0_8px_#00dce5]');
+                    toggle.classList.add('bg-surface-container-highest');
+                    toggle.classList.remove('bg-primary-container/20', 'border-primary-fixed-dim/50');
+                }
+            });
+        });
+
+        // Tab Switching Simulation
+        document.querySelectorAll('.font-label-caps.text-on-surface-variant').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                if (tab.parentElement.classList.contains('bg-surface-container-lowest')) {
+                    document.querySelectorAll('.font-label-caps.text-primary-fixed.border-b-2').forEach(active => {
+                        active.classList.remove('text-primary-fixed', 'border-b-2', 'border-primary-fixed-dim');
+                        active.classList.add('text-on-surface-variant');
+                    });
+                    tab.classList.remove('text-on-surface-variant');
+                    tab.classList.add('text-primary-fixed', 'border-b-2', 'border-primary-fixed-dim');
+                }
+            });
+        });
+
+        // Simple Hover Glow Persistence for cards
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = "scale(1.005)";
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = "scale(1)";
+            });
+        });
+    </script>
+</body></html>
