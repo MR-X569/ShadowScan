@@ -1,0 +1,43 @@
+# Python virtual environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# VS Code
+.vscode/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# Backend / Python build artifacts
+build/
+dist/
+*.egg-info/
+*.sqlite3
+
+# Temporary / prototype workspace files
+temp1/
+
+# Optional local database / data folders
+database/*.sqlite3
+database/*.db
