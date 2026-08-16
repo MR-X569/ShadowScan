@@ -41,3 +41,6 @@ temp1/
 # Optional local database / data folders
 database/*.sqlite3
 database/*.db
+
+# Demo frontend (not part of production)
+frontend-demo/
