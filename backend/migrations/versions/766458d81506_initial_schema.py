@@ -1,8 +1,8 @@
-"""Initial tables
+"""Initial schema
 
-Revision ID: 3fa38f4654e0
+Revision ID: 766458d81506
 Revises: 
-Create Date: 2026-08-16 19:32:38.018304
+Create Date: 2026-08-16 22:28:36.314915
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '3fa38f4654e0'
+revision: str = '766458d81506'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,7 +27,7 @@ def upgrade() -> None:
     sa.Column('email', sa.String(length=100), nullable=False),
     sa.Column('hashed_password', sa.String(length=255), nullable=False),
     sa.Column('full_name', sa.String(length=100), nullable=True),
-    sa.Column('role', sa.String(length=10), nullable=False),
+    sa.Column('role', sa.Enum('USER', 'ADMIN', name='userrole'), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
@@ -40,7 +40,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('target_url', sa.String(length=255), nullable=False),
-    sa.Column('status', sa.String(length=20), nullable=True),
+    sa.Column('status', sa.Enum('PENDING', 'RUNNING', 'COMPLETED', 'FAILED', name='scanstatus'), nullable=False),
     sa.Column('risk_score', sa.Float(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('completed_at', sa.DateTime(timezone=True), nullable=True),
@@ -52,10 +52,10 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('scan_id', sa.Integer(), nullable=False),
     sa.Column('vulnerability_name', sa.String(length=100), nullable=False),
-    sa.Column('severity', sa.String(length=20), nullable=False),
+    sa.Column('severity', sa.Enum('LOW', 'MEDIUM', 'HIGH', 'CRITICAL', name='severity'), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('recommendation', sa.Text(), nullable=True),
-    sa.Column('status', sa.String(length=20), nullable=True),
+    sa.Column('status', sa.Enum('OPEN', 'FIXED', 'FALSE_POSITIVE', 'ACCEPTED_RISK', name='findingstatus'), nullable=False),
     sa.ForeignKeyConstraint(['scan_id'], ['scans.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -63,7 +63,7 @@ def upgrade() -> None:
     op.create_table('reports',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('scan_id', sa.Integer(), nullable=False),
-    sa.Column('report_type', sa.String(length=20), nullable=False),
+    sa.Column('report_type', sa.Enum('PDF', 'HTML', 'JSON', name='reporttype'), nullable=False),
     sa.Column('report_path', sa.String(length=255), nullable=False),
     sa.Column('generated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.ForeignKeyConstraint(['scan_id'], ['scans.id'], ),

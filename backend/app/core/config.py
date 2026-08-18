@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     environment: str = "development"
     debug: bool = False
 
+    # Security settings
+    secret_key: str
+    algorithm: str
+    access_token_expire_minutes: int
+
     # API runtime settings
     api_v1_prefix: str = "/api/v1"
     host: str = "0.0.0.0"

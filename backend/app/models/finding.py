@@ -1,6 +1,6 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Text
+from sqlalchemy import Column, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-
+from app.core.enums import Severity, FindingStatus
 from app.core.database import Base
 
 
@@ -13,12 +13,19 @@ class Finding(Base):
 
     vulnerability_name = Column(String(100), nullable=False)
 
-    severity = Column(String(20), nullable=False)
+    severity = Column(
+    Enum(Severity),
+    nullable=False,
+    )
 
     description = Column(Text, nullable=True)
 
     recommendation = Column(Text, nullable=True)
 
-    status = Column(String(20), default="Open")
+    status = Column(
+    Enum(FindingStatus),
+    default=FindingStatus.OPEN,
+    nullable=False,
+    )
 
     scan = relationship("Scan", back_populates="findings")

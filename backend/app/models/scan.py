@@ -1,7 +1,7 @@
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
+from app.core.enums import ScanStatus
 from app.core.database import Base
 
 
@@ -14,7 +14,11 @@ class Scan(Base):
 
     target_url = Column(String(255), nullable=False)
 
-    status = Column(String(20), default="pending")
+    status = Column(
+    Enum(ScanStatus),
+    default=ScanStatus.PENDING,
+    nullable=False,
+    )
 
     risk_score = Column(Float, nullable=True)
 

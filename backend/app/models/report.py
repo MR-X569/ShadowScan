@@ -1,7 +1,7 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
+from app.core.enums import ReportType
 from app.core.database import Base
 
 
@@ -12,7 +12,10 @@ class Report(Base):
 
     scan_id = Column(Integer, ForeignKey("scans.id"), nullable=False)
 
-    report_type = Column(String(20), nullable=False)
+    report_type = Column(
+    Enum(ReportType),
+    nullable=False,
+    )
 
     report_path = Column(String(255), nullable=False)
 

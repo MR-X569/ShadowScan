@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String
+from app.core.enums import UserRole
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -16,8 +17,12 @@ class User(Base):
 
     full_name = Column(String(100), nullable=True)
 
-    role = Column(String(10), default="USER", nullable=False)
-
+    role = Column(
+    Enum(UserRole),
+    default=UserRole.USER,
+    nullable=False,
+    )
+    
     is_active = Column(Boolean, default=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
