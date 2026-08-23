@@ -31,3 +31,8 @@ class ReportType(str, Enum):
     PDF = "PDF"
     HTML = "HTML"
     JSON = "JSON"
+
+
+class VerificationPurpose(str, Enum):
+    EMAIL_VERIFICATION = "EMAIL_VERIFICATION"
+    PASSWORD_RESET = "PASSWORD_RESET"

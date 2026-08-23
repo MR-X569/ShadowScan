@@ -11,10 +11,10 @@ class UserCreate(UserBase):
     password: str
 
 
-
 class UserResponse(UserBase):
     id: int
     role: str
     is_active: bool
+    is_verified: bool
 
     model_config = ConfigDict(from_attributes=True)

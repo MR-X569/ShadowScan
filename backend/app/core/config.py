@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
 
+    # Google OAuth settings. They remain optional so email/password
+    # authentication can run when Google OAuth has not been configured.
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    google_redirect_uri: str | None = None
+
     # API runtime settings
     api_v1_prefix: str = "/api/v1"
     host: str = "0.0.0.0"

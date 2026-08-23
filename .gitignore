@@ -1,46 +1,81 @@
-# Python virtual environments
+# ==========================================
+# Python
+# ==========================================
 .venv/
 venv/
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 
-# Environment files
+# ==========================================
+# Environment Variables
+# ==========================================
 .env
 .env.*
 !.env.example
 
-# VS Code
-.vscode/
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
+# ==========================================
 # Logs
+# ==========================================
 *.log
 
-# OS
+# ==========================================
+# IDE
+# ==========================================
+.vscode/
+.idea/
+
+# ==========================================
+# Node.js
+# ==========================================
+node_modules/
+**/node_modules/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# Frontend Build
+# ==========================================
+frontend/dist/
+frontend/build/
+dist/
+build/
+
+# ==========================================
+# Python Build
+# ==========================================
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ==========================================
+# Temporary Files
+# ==========================================
+temp1/
+*.tmp
+*.swp
+
+# ==========================================
+# Operating System
+# ==========================================
 .DS_Store
 Thumbs.db
 
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/build/
-
-# Backend / Python build artifacts
-build/
-dist/
-*.egg-info/
+# ==========================================
+# Local Databases (for testing only)
+# ==========================================
 *.sqlite3
+*.db
 
-# Temporary / prototype workspace files
-temp1/
-
-# Optional local database / data folders
-database/*.sqlite3
-database/*.db
-
-# Demo frontend (not part of production)
+# ==========================================
+# Demo Project (Not Production)
+# ==========================================
 frontend-demo/

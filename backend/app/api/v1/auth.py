@@ -1,11 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.token import Token
+from app.schemas.email_verification import (
+    VerifyEmailRequest,
+    ResendOTPRequest,
+)
 from app.services.auth_service import AuthService
+from app.services.email_verification_service import (
+    EmailVerificationService,
+)
 
 router = APIRouter(
     prefix="/auth",
@@ -52,3 +60,83 @@ def login(
             status_code=401,
             detail=str(e),
         )
+
+
+@router.post("/verify-email")
+def verify_email(
+    payload: VerifyEmailRequest,
+    db: Session = Depends(get_db),
+):
+    service = EmailVerificationService(db)
+
+    service.verify_email(
+        payload.email,
+        payload.otp,
+    )
+
+    return {
+        "message": "Email verified successfully."
+    }
+
+
+@router.post("/resend-otp")
+def resend_otp(
+    payload: ResendOTPRequest,
+    db: Session = Depends(get_db),
+):
+    service = EmailVerificationService(db)
+
+    service.resend_verification_otp(
+        payload.email,
+    )
+
+    return {
+        "message": "Verification OTP sent."
+    }
+
+
+@router.get("/google/login")
+def google_login(
+    db: Session = Depends(get_db),
+):
+    service = AuthService(db)
+    authorization_url, state = service.get_google_authorization_url()
+
+    response = RedirectResponse(
+        url=authorization_url,
+        status_code=302,
+    )
+    response.set_cookie(
+        key="google_oauth_state",
+        value=state,
+        max_age=600,
+        httponly=True,
+        samesite="lax",
+    )
+
+    return response
+
+
+@router.get(
+    "/google/callback",
+    response_model=Token,
+)
+def google_callback(
+    response: Response,
+    code: str | None = Query(default=None),
+    state: str | None = Query(default=None),
+    error: str | None = Query(default=None),
+    google_oauth_state: str | None = Cookie(default=None),
+    db: Session = Depends(get_db),
+):
+    service = AuthService(db)
+
+    token = service.login_with_google(
+        code=code,
+        state_value=state,
+        expected_state=google_oauth_state,
+        error=error,
+    )
+    response.delete_cookie("google_oauth_state")
+
+    return token

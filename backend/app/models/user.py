@@ -2,7 +2,7 @@ from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String
 from app.core.enums import UserRole
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
+from sqlalchemy import Boolean
 from app.core.database import Base
 
 
@@ -32,4 +32,16 @@ class User(Base):
         onupdate=func.now(),
     )
 
+    is_verified = Column(
+    Boolean,
+    default=False,
+    nullable=False,
+    )
+
+    email_verifications = relationship(
+    "EmailVerification",
+    back_populates="user",
+    cascade="all, delete-orphan",
+    )
+    
     scans = relationship("Scan", back_populates="user")
