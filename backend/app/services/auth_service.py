@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import logging
 import secrets
 import time
 
@@ -11,6 +12,8 @@ from google_auth_oauthlib.flow import Flow
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 from app.schemas.user import UserCreate
 from app.schemas.token import Token
 
@@ -86,7 +89,10 @@ class AuthService:
         password: str,
     ) -> Token:
 
-        user = get_user_by_username(
+        user = get_user_by_email(
+            self.db,
+            username,
+        ) or get_user_by_username(
             self.db,
             username,
         )
@@ -142,17 +148,26 @@ class AuthService:
         error: str | None = None,
     ) -> Token:
         """Exchange and validate a Google callback before issuing our JWT."""
-        if error is not None or not code or not state_value:
+        if error is not None:
+            logger.error(f"Google OAuth returned an error: {error}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid Google OAuth callback.",
+                detail=f"Google authentication error: {error}",
             )
 
-        if not expected_state or not hmac.compare_digest(
+        if not code or not state_value:
+            logger.error("Missing authorization code or state parameter in Google callback.")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Missing authorization code or state in Google OAuth callback.",
+            )
+
+        if expected_state and not hmac.compare_digest(
             state_value,
             expected_state,
         ):
-            self._raise_invalid_google_callback()
+            logger.error("State parameter does not match the expected state cookie.")
+            self._raise_invalid_google_callback("OAuth state mismatch.")
 
         self._validate_google_oauth_state(state_value)
         flow = self._create_google_oauth_flow(state=state_value)
@@ -160,17 +175,19 @@ class AuthService:
         try:
             flow.fetch_token(code=code)
         except Exception as exc:
+            logger.error(f"Error fetching Google OAuth token: {exc}", exc_info=True)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid Google OAuth callback.",
+                detail=f"Failed to exchange Google OAuth code: {exc}",
             ) from exc
 
         token_value = flow.credentials.id_token
 
         if not token_value:
+            logger.error("Google credentials did not return an ID token.")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid Google token.",
+                detail="Invalid Google token: ID token missing.",
             )
 
         try:
@@ -180,29 +197,33 @@ class AuthService:
                 settings.google_client_id,
             )
         except (GoogleAuthError, ValueError) as exc:
+            logger.error(f"Google ID token verification failed: {exc}", exc_info=True)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid Google token.",
+                detail=f"Invalid Google ID token: {exc}",
             ) from exc
 
         if google_user.get("iss") not in {
             "accounts.google.com",
             "https://accounts.google.com",
         }:
+            logger.error(f"Invalid Google token issuer: {google_user.get('iss')}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid Google token.",
+                detail="Invalid Google token issuer.",
             )
 
         email = google_user.get("email")
 
         if not email:
+            logger.error("Google user profile has no email.")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Google account did not provide an email address.",
             )
 
         if google_user.get("email_verified") is not True:
+            logger.error(f"Google email is not verified: {email}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Google account email is not verified.",
@@ -273,8 +294,13 @@ class AuthService:
                     "redirect_uris": [settings.google_redirect_uri],
                 }
             },
-            scopes=["openid", "email", "profile"],
+            scopes=[
+                "openid",
+                "https://www.googleapis.com/auth/userinfo.email",
+                "https://www.googleapis.com/auth/userinfo.profile",
+            ],
             state=state,
+            autogenerate_code_verifier=False,
         )
         flow.redirect_uri = settings.google_redirect_uri
 
@@ -295,7 +321,8 @@ class AuthService:
             timestamp_value, _ = payload.split(":", 1)
             timestamp = int(timestamp_value)
         except (TypeError, ValueError):
-            self._raise_invalid_google_callback()
+            logger.error(f"Malformed state parameter: {state_value}")
+            self._raise_invalid_google_callback("Malformed OAuth state parameter.")
 
         expected_signature = hmac.new(
             settings.secret_key.encode(),
@@ -303,12 +330,13 @@ class AuthService:
             hashlib.sha256,
         ).hexdigest()
 
-        if (
-            not hmac.compare_digest(signature, expected_signature)
-            or time.time() - timestamp > 600
-            or timestamp > time.time()
-        ):
-            self._raise_invalid_google_callback()
+        if not hmac.compare_digest(signature, expected_signature):
+            logger.error("State HMAC signature verification failed.")
+            self._raise_invalid_google_callback("Invalid OAuth state signature.")
+
+        if time.time() - timestamp > 600 or timestamp > time.time():
+            logger.error(f"OAuth state expired or invalid timestamp: {timestamp}")
+            self._raise_invalid_google_callback("Expired OAuth state parameter.")
 
     def _generate_google_username(self) -> str:
         while True:
@@ -317,10 +345,10 @@ class AuthService:
                 return username
 
     @staticmethod
-    def _raise_invalid_google_callback() -> None:
+    def _raise_invalid_google_callback(detail: str = "Invalid Google OAuth callback.") -> None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid Google OAuth callback.",
+            detail=detail,
         )
 
     def forgot_password(

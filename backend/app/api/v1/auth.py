@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.config import settings
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.token import Token
 from app.schemas.email_verification import (
@@ -119,7 +120,6 @@ def google_login(
 
 @router.get(
     "/google/callback",
-    response_model=Token,
 )
 def google_callback(
     response: Response,
@@ -137,6 +137,11 @@ def google_callback(
         expected_state=google_oauth_state,
         error=error,
     )
-    response.delete_cookie("google_oauth_state")
 
-    return token
+    redirect_response = RedirectResponse(
+        url=f"{settings.frontend_url}/auth/google/callback?token={token.access_token}",
+        status_code=302,
+    )
+    redirect_response.delete_cookie("google_oauth_state")
+
+    return redirect_response

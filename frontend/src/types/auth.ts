@@ -22,3 +22,22 @@ export interface AuthResponse {
   token_type?: string;
   user?: AuthUser;
 }
+
+export interface VerifyEmailRequest {
+  email: string;
+  otp: string;
+}
+
+export interface ResendOTPRequest {
+  email: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  password: string;
+}

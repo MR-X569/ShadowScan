@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Shield, Loader2 } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Eye, EyeOff, Shield, Loader2, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 
 import InputField from '@/components/ui/InputField';
-import { login } from '@/services/auth';
+import { login, getGoogleLoginUrl } from '@/services/auth';
 
 interface FormState {
   email: string;
@@ -34,8 +34,13 @@ function validateForm(form: FormState): FormErrors {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as { emailVerified?: boolean; email?: string } | null;
 
-  const [form, setForm] = useState<FormState>({ email: '', password: '' });
+  const [form, setForm] = useState<FormState>({
+    email: locationState?.email || '',
+    password: '',
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,6 +54,10 @@ export default function LoginPage() {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
     if (serverError) setServerError('');
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = getGoogleLoginUrl();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -124,6 +133,17 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="rounded-2xl border border-brand-border bg-brand-surface p-8 shadow-card">
+          {/* Verification Success Notice */}
+          {locationState?.emailVerified && !serverError && (
+            <div
+              className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400"
+              role="status"
+            >
+              <CheckCircle2 size={16} className="shrink-0" />
+              <span>Email verified successfully. You can now log in.</span>
+            </div>
+          )}
+
           {/* Server Error Banner */}
           {serverError && (
             <div
@@ -190,10 +210,13 @@ export default function LoginPage() {
                 />
                 Remember me
               </label>
-              <span className="text-sm text-brand-muted">
-                {/* TODO: Forgot Password page */}
+              <Link
+                to="/forgot-password"
+                id="login-forgot-password-link"
+                className="text-sm font-medium text-brand-cyan transition-colors hover:text-cyan-300"
+              >
                 Forgot Password?
-              </span>
+              </Link>
             </div>
 
             {/* Submit */}
@@ -221,10 +244,10 @@ export default function LoginPage() {
             </div>
 
             {/* Google Button */}
-            {/* TODO: Google OAuth Integration */}
             <button
               id="login-google-btn"
               type="button"
+              onClick={handleGoogleLogin}
               disabled={loading}
               className="flex w-full items-center justify-center gap-3 rounded-lg border border-brand-border bg-brand-card px-4 py-2.5 text-sm font-medium text-brand-text transition-all duration-200 hover:border-brand-cyan/30 hover:bg-brand-card/80 disabled:cursor-not-allowed disabled:opacity-60"
             >

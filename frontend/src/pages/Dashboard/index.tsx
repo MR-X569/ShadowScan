@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   ScanLine,
   Activity,
   CheckCircle2,
   XCircle,
   LayoutDashboard,
+  User as UserIcon,
+  Settings as SettingsIcon,
   LogOut,
   Shield,
   AlertTriangle,
@@ -144,22 +146,43 @@ export default function DashboardPage() {
       <header className="sticky top-0 z-50 border-b border-brand-border bg-brand-bg/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           {/* Logo */}
-          <div className="flex items-center gap-2.5 text-xl font-bold text-brand-text">
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-2.5 text-xl font-bold text-brand-text"
+            aria-label="ShadowScan dashboard"
+          >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-cyan/10 text-brand-cyan ring-1 ring-brand-cyan/30">
               <Shield size={18} strokeWidth={2} />
             </div>
             <span>
               Shadow<span className="text-brand-cyan">Scan</span>
             </span>
-          </div>
+          </Link>
 
-          {/* Nav item */}
-          <div className="hidden items-center gap-1 md:flex">
-            <span className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-brand-cyan">
+          {/* Navigation Links */}
+          <nav className="hidden items-center gap-2 md:flex" aria-label="App Navigation">
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-1.5 rounded-lg bg-brand-cyan/10 px-3 py-2 text-sm font-medium text-brand-cyan ring-1 ring-brand-cyan/30"
+            >
               <LayoutDashboard size={15} />
               Dashboard
-            </span>
-          </div>
+            </Link>
+            <Link
+              to="/profile"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-brand-subtle transition-colors hover:bg-brand-surface hover:text-brand-text"
+            >
+              <UserIcon size={15} />
+              Profile
+            </Link>
+            <Link
+              to="/settings"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-brand-subtle transition-colors hover:bg-brand-surface hover:text-brand-text"
+            >
+              <SettingsIcon size={15} />
+              Settings
+            </Link>
+          </nav>
 
           {/* Right: user + logout */}
           <div className="flex items-center gap-3">

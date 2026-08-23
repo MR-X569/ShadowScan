@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     google_client_secret: str | None = None
     google_redirect_uri: str | None = None
 
+    # Frontend URL — used to redirect browser after Google OAuth callback.
+    # Override with FRONTEND_URL env var in production.
+    frontend_url: str = "http://localhost:3000"
+
     # API runtime settings
     api_v1_prefix: str = "/api/v1"
     host: str = "0.0.0.0"
