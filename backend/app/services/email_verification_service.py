@@ -19,6 +19,8 @@ from app.models.user import User
 
 from app.services.email_service import EmailService
 
+MAX_OTP_ATTEMPTS = 5
+
 
 class EmailVerificationService:
 
@@ -91,19 +93,24 @@ class EmailVerificationService:
             VerificationPurpose.EMAIL_VERIFICATION,
         )
 
-        if verification is None or verification.otp != otp:
-            if verification is not None:
-                increment_attempts(self.db, verification)
-
+        if verification is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid or expired OTP.",
             )
 
-        if verification.attempts >= 5:
+        # Check lockout BEFORE accepting/rejecting OTP — fixes off-by-one bug.
+        if verification.attempts >= MAX_OTP_ATTEMPTS:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Maximum OTP attempts exceeded. Please request a new OTP.",
+            )
+
+        if verification.otp != otp:
+            increment_attempts(self.db, verification)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Maximum OTP attempts exceeded.",
+                detail="Invalid or expired OTP.",
             )
 
         mark_verification_used(
@@ -136,3 +143,102 @@ class EmailVerificationService:
             )
 
         self.send_verification_otp(user)
+
+    # ------------------------------------------------------------------
+    # Password reset OTP methods
+    # ------------------------------------------------------------------
+
+    def send_password_reset_otp(self, email: str) -> None:
+        """
+        Send a password-reset OTP to the given email address.
+        Always returns without error even if the email is not found,
+        to prevent user enumeration.
+        """
+        user = get_user_by_email(self.db, email)
+        if user is None:
+            # Silently return — don't reveal whether the email exists.
+            return
+
+        delete_user_verifications(
+            self.db,
+            user.id,
+            VerificationPurpose.PASSWORD_RESET,
+        )
+
+        otp = generate_otp()
+
+        verification = EmailVerification(
+            user_id=user.id,
+            otp=otp,
+            purpose=VerificationPurpose.PASSWORD_RESET,
+            expires_at=get_expiry_time(),
+        )
+
+        create_verification(self.db, verification)
+
+        # Best-effort — if email fails, don't surface the error
+        self.email_service.send_password_reset_email(user.email, otp)
+
+    def verify_reset_otp(self, email: str, otp: str) -> None:
+        """
+        Verify a password-reset OTP without consuming it.
+        Raises HTTPException if invalid, expired, or locked out.
+        """
+        user = get_user_by_email(self.db, email)
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired OTP.",
+            )
+
+        verification = get_active_verification(
+            self.db,
+            user.id,
+            VerificationPurpose.PASSWORD_RESET,
+        )
+
+        if verification is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired OTP.",
+            )
+
+        if verification.attempts >= MAX_OTP_ATTEMPTS:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Maximum OTP attempts exceeded. Please request a new OTP.",
+            )
+
+        if verification.otp != otp:
+            increment_attempts(self.db, verification)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired OTP.",
+            )
+        # OTP is valid — do NOT mark as used yet (that happens in reset_password)
+
+    def consume_reset_otp(self, email: str, otp: str) -> None:
+        """
+        Consume (mark used) a valid password-reset OTP.
+        Call this only after verifying the OTP is correct.
+        """
+        user = get_user_by_email(self.db, email)
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired OTP.",
+            )
+
+        verification = get_active_verification(
+            self.db,
+            user.id,
+            VerificationPurpose.PASSWORD_RESET,
+        )
+
+        if verification is None or verification.otp != otp:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired OTP.",
+            )
+
+        mark_verification_used(self.db, verification)

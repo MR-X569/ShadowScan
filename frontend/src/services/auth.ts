@@ -45,13 +45,13 @@ export async function resendVerificationOtp(data: ResendOTPRequest): Promise<{ m
   return response.data;
 }
 
-/**
- * Request password reset OTP.
- * Uses existing /auth/resend-otp backend endpoint until dedicated forgot-password endpoint is deployed.
- */
-export async function requestPasswordResetOtp(data: ResendOTPRequest): Promise<{ message: string }> {
-  // TODO: Update endpoint to dedicated /auth/forgot-password when backend API is finished
-  const response = await api.post<{ message: string }>('/auth/resend-otp', data);
+export async function requestPasswordResetOtp(data: { email: string }): Promise<{ message: string }> {
+  const response = await api.post<{ message: string }>('/auth/forgot-password', data);
+  return response.data;
+}
+
+export async function verifyResetOtp(data: { email: string; otp: string }): Promise<{ message: string }> {
+  const response = await api.post<{ message: string }>('/auth/verify-reset-otp', data);
   return response.data;
 }
 
@@ -59,7 +59,6 @@ export async function requestPasswordResetOtp(data: ResendOTPRequest): Promise<{
  * Reset password with OTP.
  */
 export async function resetPassword(data: ResetPasswordRequest): Promise<{ message: string }> {
-  // TODO: Connect to backend /auth/reset-password endpoint once implemented on backend
   const response = await api.post<{ message: string }>('/auth/reset-password', data);
   return response.data;
 }
@@ -71,7 +70,6 @@ export async function changePassword(data: {
   old_password: string;
   new_password: string;
 }): Promise<{ message: string }> {
-  // TODO: Connect to backend /users/change-password endpoint once implemented on backend
   const response = await api.post<{ message: string }>('/users/change-password', data);
   return response.data;
 }
@@ -94,6 +92,13 @@ export function getGoogleLoginUrl(): string {
   return `${API_BASE_URL}/auth/google/login`;
 }
 
+export async function exchangeGoogleTokenCookie(): Promise<AuthResponse> {
+  const response = await api.post<{ access_token: string; token_type: string }>('/auth/google/token-exchange');
+  const { access_token } = response.data;
+  localStorage.setItem('token', access_token);
+  return { access_token };
+}
+
 export async function exchangeGoogleCallback(params: {
   code?: string;
   state?: string;
@@ -106,3 +111,4 @@ export async function exchangeGoogleCallback(params: {
   localStorage.setItem('token', access_token);
   return { access_token };
 }
+

@@ -70,4 +70,23 @@ class ScanResponse(BaseModel):
     created_at: datetime
     completed_at: datetime | None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FindingResponse(BaseModel):
+    """Vulnerability finding item returned by GET /scans/{id}/findings."""
+
+    id: int
+    scan_id: int
+    vulnerability_name: str
+    plugin: str | None = None
+    severity: str
+    description: str | None = None
+    recommendation: str | None = None
+    evidence: str | None = None
+    status: str
+    created_at: datetime | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+

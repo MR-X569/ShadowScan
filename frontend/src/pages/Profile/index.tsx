@@ -1,14 +1,11 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
-  Shield,
   User as UserIcon,
   Mail,
   ShieldCheck,
   ShieldAlert,
   Calendar,
   KeyRound,
-  LayoutDashboard,
-  Settings as SettingsIcon,
   LogOut,
   Loader2,
   CheckCircle2,
@@ -19,8 +16,11 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { logout } from '@/services/auth';
 
+import AppHeader from '@/components/layout/AppHeader';
+
 function formatDate(iso?: string | null): string {
   if (!iso) return '--';
+
   try {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return '--';
@@ -62,68 +62,11 @@ export default function ProfilePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-brand-bg">
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-50 border-b border-brand-border bg-brand-bg/90 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          {/* Logo */}
-          <Link
-            to="/dashboard"
-            id="profile-navbar-logo"
-            className="flex items-center gap-2.5 text-xl font-bold text-brand-text"
-            aria-label="Back to dashboard"
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-cyan/10 text-brand-cyan ring-1 ring-brand-cyan/30">
-              <Shield size={18} strokeWidth={2} />
-            </div>
-            <span>
-              Shadow<span className="text-brand-cyan">Scan</span>
-            </span>
-          </Link>
-
-          {/* Navigation Links */}
-          <nav className="hidden items-center gap-2 md:flex" aria-label="App Navigation">
-            <Link
-              to="/dashboard"
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-brand-subtle transition-colors hover:bg-brand-surface hover:text-brand-text"
-            >
-              <LayoutDashboard size={15} />
-              Dashboard
-            </Link>
-            <Link
-              to="/profile"
-              className="flex items-center gap-1.5 rounded-lg bg-brand-cyan/10 px-3 py-2 text-sm font-medium text-brand-cyan ring-1 ring-brand-cyan/30"
-            >
-              <UserIcon size={15} />
-              Profile
-            </Link>
-            <Link
-              to="/settings"
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-brand-subtle transition-colors hover:bg-brand-surface hover:text-brand-text"
-            >
-              <SettingsIcon size={15} />
-              Settings
-            </Link>
-          </nav>
-
-          {/* Right: user + logout */}
-          <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-brand-subtle sm:block">
-              {user?.email || '--'}
-            </span>
-            <button
-              id="profile-logout-btn"
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 rounded-lg border border-brand-border px-3 py-2 text-sm font-medium text-brand-subtle transition-all duration-200 hover:border-red-500/30 hover:text-red-400"
-            >
-              <LogOut size={14} />
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader user={user} />
 
       {/* Main Content */}
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+
         {/* Breadcrumb / Section Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-brand-text sm:text-3xl">

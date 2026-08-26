@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Shield, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 
-import { exchangeGoogleCallback } from '@/services/auth';
+import { exchangeGoogleCallback, exchangeGoogleTokenCookie } from '@/services/auth';
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -11,17 +11,10 @@ export default function AuthCallbackPage() {
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    const code = searchParams.get('code');
-    const state = searchParams.get('state');
     const errorParam = searchParams.get('error');
     const directToken = searchParams.get('token') || searchParams.get('access_token');
-
-    // If direct token was passed in URL query
-    if (directToken) {
-      localStorage.setItem('token', directToken);
-      navigate('/dashboard', { replace: true });
-      return;
-    }
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
 
     // If Google returned an error query parameter
     if (errorParam) {
@@ -29,24 +22,39 @@ export default function AuthCallbackPage() {
       return;
     }
 
-    // If OAuth authorization code was returned
-    if (code && state) {
-      exchangeGoogleCallback({ code, state })
-        .then(() => {
-          navigate('/dashboard', { replace: true });
-        })
-        .catch((err: unknown) => {
-          if (axios.isAxiosError(err)) {
-            const detail = err.response?.data?.detail;
-            setError(typeof detail === 'string' ? detail : 'Failed to complete Google authentication.');
-          } else {
-            setError('An unexpected error occurred during Google authentication.');
-          }
-        });
-    } else {
-      setError('Missing authentication parameters from Google OAuth provider.');
+    // Direct token in URL (fallback)
+    if (directToken) {
+      localStorage.setItem('token', directToken);
+      navigate('/dashboard', { replace: true });
+      return;
     }
+
+    // Try exchange via secure httpOnly cookie first
+    exchangeGoogleTokenCookie()
+      .then(() => {
+        navigate('/dashboard', { replace: true });
+      })
+      .catch(() => {
+        // If cookie exchange failed, check if code and state were provided
+        if (code && state) {
+          exchangeGoogleCallback({ code, state })
+            .then(() => {
+              navigate('/dashboard', { replace: true });
+            })
+            .catch((err: unknown) => {
+              if (axios.isAxiosError(err)) {
+                const detail = err.response?.data?.detail;
+                setError(typeof detail === 'string' ? detail : 'Failed to complete Google authentication.');
+              } else {
+                setError('An unexpected error occurred during Google authentication.');
+              }
+            });
+        } else {
+          setError('Google authentication failed or session expired. Please try logging in again.');
+        }
+      });
   }, [searchParams, navigate]);
+
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-brand-bg px-4 py-12">

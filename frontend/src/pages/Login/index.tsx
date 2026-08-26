@@ -37,15 +37,17 @@ export default function LoginPage() {
   const location = useLocation();
   const locationState = location.state as { emailVerified?: boolean; email?: string } | null;
 
+  const savedEmail = localStorage.getItem('shadowscan_remembered_email') || '';
+
   const [form, setForm] = useState<FormState>({
-    email: locationState?.email || '',
+    email: locationState?.email || savedEmail,
     password: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(Boolean(savedEmail));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -73,6 +75,12 @@ export default function LoginPage() {
     setServerError('');
 
     try {
+      if (rememberMe) {
+        localStorage.setItem('shadowscan_remembered_email', form.email);
+      } else {
+        localStorage.removeItem('shadowscan_remembered_email');
+      }
+
       await login({ email: form.email, password: form.password });
       navigate('/dashboard');
     } catch (err: unknown) {
@@ -92,6 +100,7 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-brand-bg px-4 py-12">

@@ -5,7 +5,7 @@ Contains only database operations.
 Business logic belongs in the service layer.
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 
 from sqlalchemy.orm import Session
 
@@ -40,7 +40,7 @@ def get_active_verification(
             EmailVerification.user_id == user_id,
             EmailVerification.purpose == purpose,
             EmailVerification.used.is_(False),
-            EmailVerification.expires_at > datetime.utcnow(),
+            EmailVerification.expires_at > datetime.now(UTC),
         )
         .order_by(EmailVerification.created_at.desc())
         .first()
@@ -63,7 +63,7 @@ def get_verification_by_otp(
             EmailVerification.otp == otp,
             EmailVerification.purpose == purpose,
             EmailVerification.used.is_(False),
-            EmailVerification.expires_at > datetime.utcnow(),
+            EmailVerification.expires_at > datetime.now(UTC),
         )
         .first()
     )
@@ -121,9 +121,9 @@ def delete_expired_verifications(
     (
         db.query(EmailVerification)
         .filter(
-            EmailVerification.expires_at <= datetime.utcnow()
+            EmailVerification.expires_at <= datetime.now(UTC)
         )
         .delete()
     )
 
-    db.commit()
+    db.commit()

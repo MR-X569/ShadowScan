@@ -1,4 +1,3 @@
-from datetime import datetime
 from app.core.enums import VerificationPurpose
 from sqlalchemy import (
     Boolean,
@@ -9,8 +8,8 @@ from sqlalchemy import (
     String,
     Enum,
 )
-
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.core.database import Base
 
@@ -26,8 +25,9 @@ class EmailVerification(Base):
 
     user_id = Column(
         Integer,
-        ForeignKey("users.id"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
 
     otp = Column(
@@ -36,9 +36,9 @@ class EmailVerification(Base):
     )
 
     purpose = Column(
-    Enum(VerificationPurpose),
-    nullable=False,
-)
+        Enum(VerificationPurpose),
+        nullable=False,
+    )
 
     attempts = Column(
         Integer,
@@ -53,17 +53,17 @@ class EmailVerification(Base):
     )
 
     expires_at = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=False,
     )
 
     created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
+        DateTime(timezone=True),
+        server_default=func.now(),
         nullable=False,
     )
 
     user = relationship(
         "User",
         back_populates="email_verifications",
-    )
+    )

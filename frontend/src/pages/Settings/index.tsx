@@ -1,11 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
-  Shield,
-  LayoutDashboard,
-  User as UserIcon,
-  Settings as SettingsIcon,
-  LogOut,
   Eye,
   EyeOff,
   CheckCircle2,
@@ -13,11 +8,13 @@ import {
   AlertCircle,
   Loader2,
   Key,
+  LogOut,
 } from 'lucide-react';
 import axios from 'axios';
 
 import { useAuth } from '@/hooks/useAuth';
 import { logout, changePassword } from '@/services/auth';
+import AppHeader from '@/components/layout/AppHeader';
 import InputField from '@/components/ui/InputField';
 
 interface PasswordRule {
@@ -50,17 +47,19 @@ export default function SettingsPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const passwordRuleStatus = useMemo(
-    () => PASSWORD_RULES.map((rule) => ({ ...rule, passed: rule.test(newPassword) })),
-    [newPassword]
-  );
-
-  const showPasswordRules = newPassword.length > 0;
+  const ruleResults = useMemo(() => {
+    return PASSWORD_RULES.map((r) => ({
+      label: r.label,
+      passed: r.test(newPassword),
+    }));
+  }, [newPassword]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +91,6 @@ export default function SettingsPage() {
     setLoading(true);
 
     try {
-      // TODO: Backend /users/change-password endpoint
       const response = await changePassword({
         old_password: oldPassword,
         new_password: newPassword,
@@ -111,13 +109,7 @@ export default function SettingsPage() {
         } else if (Array.isArray(detail)) {
           setServerError(detail.map((d) => d.msg).join(' '));
         } else {
-          // If the backend endpoint is not yet implemented (e.g., 404 or 405)
-          if (err.response?.status === 404 || err.response?.status === 405) {
-            // TODO: Dedicated change-password API is pending implementation on backend
-            setServerError('Change password feature is currently pending backend implementation.');
-          } else {
-            setServerError('Failed to change password. Please check your old password and try again.');
-          }
+          setServerError('Failed to change password. Please check your old password and try again.');
         }
       } else {
         setServerError('An unexpected error occurred. Please try again.');
@@ -126,6 +118,7 @@ export default function SettingsPage() {
       setLoading(false);
     }
   };
+
 
   if (authLoading) {
     return (
@@ -137,68 +130,10 @@ export default function SettingsPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-brand-bg">
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-50 border-b border-brand-border bg-brand-bg/90 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          {/* Logo */}
-          <Link
-            to="/dashboard"
-            id="settings-navbar-logo"
-            className="flex items-center gap-2.5 text-xl font-bold text-brand-text"
-            aria-label="Back to dashboard"
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-cyan/10 text-brand-cyan ring-1 ring-brand-cyan/30">
-              <Shield size={18} strokeWidth={2} />
-            </div>
-            <span>
-              Shadow<span className="text-brand-cyan">Scan</span>
-            </span>
-          </Link>
-
-          {/* Navigation Links */}
-          <nav className="hidden items-center gap-2 md:flex" aria-label="App Navigation">
-            <Link
-              to="/dashboard"
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-brand-subtle transition-colors hover:bg-brand-surface hover:text-brand-text"
-            >
-              <LayoutDashboard size={15} />
-              Dashboard
-            </Link>
-            <Link
-              to="/profile"
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-brand-subtle transition-colors hover:bg-brand-surface hover:text-brand-text"
-            >
-              <UserIcon size={15} />
-              Profile
-            </Link>
-            <Link
-              to="/settings"
-              className="flex items-center gap-1.5 rounded-lg bg-brand-cyan/10 px-3 py-2 text-sm font-medium text-brand-cyan ring-1 ring-brand-cyan/30"
-            >
-              <SettingsIcon size={15} />
-              Settings
-            </Link>
-          </nav>
-
-          {/* Right: user + logout */}
-          <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-brand-subtle sm:block">
-              {user?.email || '--'}
-            </span>
-            <button
-              id="settings-logout-btn"
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 rounded-lg border border-brand-border px-3 py-2 text-sm font-medium text-brand-subtle transition-all duration-200 hover:border-red-500/30 hover:text-red-400"
-            >
-              <LogOut size={14} />
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader user={user} />
 
       {/* Main Content */}
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-brand-text sm:text-3xl">
@@ -312,12 +247,12 @@ export default function SettingsPage() {
                 />
 
                 {/* Live Password Rules */}
-                {showPasswordRules && (
+                {newPassword.length > 0 && (
                   <ul
                     className="mt-1 flex flex-col gap-1 rounded-lg border border-brand-border bg-brand-card px-4 py-3"
                     aria-label="Password requirements"
                   >
-                    {passwordRuleStatus.map((rule) => (
+                    {ruleResults.map((rule) => (
                       <li
                         key={rule.label}
                         className={`flex items-center gap-2 text-xs transition-colors duration-150 ${
@@ -335,6 +270,7 @@ export default function SettingsPage() {
                   </ul>
                 )}
               </div>
+
 
               {/* Confirm Password */}
               <InputField

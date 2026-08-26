@@ -1,21 +1,22 @@
-import os
+import logging
 import smtplib
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from dotenv import load_dotenv
+from app.core.config import settings
 
-load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 class EmailService:
     def __init__(self):
-        self.smtp_host = os.getenv("SMTP_HOST")
-        self.smtp_port = int(os.getenv("SMTP_PORT", 587))
-        self.smtp_email = os.getenv("SMTP_EMAIL")
-        self.smtp_password = os.getenv("SMTP_PASSWORD")
-        self.smtp_from = os.getenv("SMTP_FROM", "ShadowScan")
+        self.smtp_host = settings.smtp_host
+        self.smtp_port = settings.smtp_port
+        self.smtp_email = settings.smtp_email
+        self.smtp_password = settings.smtp_password
+        self.smtp_from = settings.smtp_from
+
 
     def send_email(
         self,

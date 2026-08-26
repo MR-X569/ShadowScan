@@ -7,7 +7,7 @@ Responsible for:
 """
 
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 
 OTP_LENGTH = 6
@@ -23,9 +23,9 @@ def generate_otp() -> str:
 
 def get_expiry_time() -> datetime:
     """
-    Return the OTP expiry timestamp.
+    Return the OTP expiry timestamp (timezone-aware UTC).
     """
-    return datetime.utcnow() + timedelta(
+    return datetime.now(UTC) + timedelta(
         minutes=OTP_EXPIRY_MINUTES
     )
 
@@ -34,4 +34,4 @@ def is_otp_expired(expires_at: datetime) -> bool:
     """
     Check whether an OTP has expired.
     """
-    return datetime.utcnow() > expires_at
+    return datetime.now(UTC) > expires_at

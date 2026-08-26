@@ -10,14 +10,14 @@ class Scan(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
     target_url = Column(String(255), nullable=False)
 
     status = Column(
-    Enum(ScanStatus),
-    default=ScanStatus.PENDING,
-    nullable=False,
+        Enum(ScanStatus),
+        default=ScanStatus.PENDING,
+        nullable=False,
     )
 
     risk_score = Column(Float, nullable=True)
@@ -28,7 +28,8 @@ class Scan(Base):
 
     # Relationship
     user = relationship("User", back_populates="scans")
-    findings = relationship("Finding", back_populates="scan")
-    reports = relationship("Report", back_populates="scan")
+    findings = relationship("Finding", back_populates="scan", cascade="all, delete-orphan")
+    reports = relationship("Report", back_populates="scan", cascade="all, delete-orphan")
+
 
     

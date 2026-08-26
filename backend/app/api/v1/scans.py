@@ -1,23 +1,10 @@
-"""
-Scan Management API — /scans
-
-Endpoints:
-  POST   /scans              — Create a new scan
-  GET    /scans              — List current user's scans (paginated)
-  GET    /scans/{scan_id}    — Get full details of a single scan
-  DELETE /scans/{scan_id}    — Delete a scan
-
-All endpoints require a valid JWT (enforced by get_current_user dependency).
-Ownership is enforced at the service layer; the router stays thin.
-"""
-
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
-from app.schemas.scan import ScanCreate, ScanListResponse, ScanResponse
+from app.schemas.scan import FindingResponse, ScanCreate, ScanListResponse, ScanResponse
 from app.services.scan_service import ScanService
 
 router = APIRouter(
@@ -38,17 +25,17 @@ router = APIRouter(
     summary="Create a new scan",
     description=(
         "Submits a target URL for vulnerability scanning. "
-        "The scan is created with status **PENDING** and belongs to the "
-        "authenticated user."
+        "The scan is created and automatically queued for execution."
     ),
 )
 def create_scan(
     payload: ScanCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ScanResponse:
     service = ScanService(db)
-    return service.create_scan(current_user, payload)
+    return service.create_scan(current_user, payload, background_tasks=background_tasks)
 
 
 # ---------------------------------------------------------------------------
@@ -76,6 +63,25 @@ def list_scans(
 
 
 # ---------------------------------------------------------------------------
+# GET /scans/findings/all — List all findings for current user across scans
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/findings/all",
+    response_model=list[FindingResponse],
+    summary="List all user findings",
+    description="Returns all findings across all scans owned by the authenticated user.",
+)
+def list_all_findings(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[FindingResponse]:
+    service = ScanService(db)
+    return service.get_user_all_findings(current_user)
+
+
+# ---------------------------------------------------------------------------
 # GET /scans/{scan_id} — Get scan details
 # ---------------------------------------------------------------------------
 
@@ -100,6 +106,26 @@ def get_scan(
 
 
 # ---------------------------------------------------------------------------
+# GET /scans/{scan_id}/findings — Get scan findings
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/{scan_id}/findings",
+    response_model=list[FindingResponse],
+    summary="Get scan findings",
+    description="Returns all vulnerability findings identified for this scan.",
+)
+def get_scan_findings(
+    scan_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[FindingResponse]:
+    service = ScanService(db)
+    return service.get_scan_findings(current_user, scan_id)
+
+
+# ---------------------------------------------------------------------------
 # DELETE /scans/{scan_id} — Delete a scan
 # ---------------------------------------------------------------------------
 
@@ -120,3 +146,4 @@ def delete_scan(
 ) -> dict[str, str]:
     service = ScanService(db)
     return service.delete_scan(current_user, scan_id)
+

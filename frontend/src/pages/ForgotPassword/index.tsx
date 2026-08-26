@@ -19,7 +19,7 @@ import axios from 'axios';
 
 import OtpInput from '@/components/forms/OtpInput';
 import InputField from '@/components/ui/InputField';
-import { requestPasswordResetOtp, resetPassword } from '@/services/auth';
+import { requestPasswordResetOtp, verifyResetOtp, resetPassword } from '@/services/auth';
 
 const COUNTDOWN_SECONDS = 60;
 
@@ -58,33 +58,34 @@ export default function ForgotPasswordPage() {
 
   // Countdown timer for OTP resend
   const [timer, setTimer] = useState<number>(COUNTDOWN_SECONDS);
-  const [isTimerActive, setIsTimerActive] = useState<boolean>(false);
 
+  // Decrement timer
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
+    if (step !== 2) return;
+    if (timer <= 0) return;
 
-    if (isTimerActive && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    } else if (timer === 0) {
-      setIsTimerActive(false);
-    }
+    const interval = setInterval(() => {
+      setTimer((prev) => prev - 1);
+    }, 1000);
 
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isTimerActive, timer]);
+    return () => clearInterval(interval);
+  }, [step, timer]);
 
-  const passwordRuleStatus = useMemo(
-    () => PASSWORD_RULES.map((rule) => ({ ...rule, passed: rule.test(newPassword) })),
-    [newPassword]
-  );
+  // Reset timer when moving to Step 2
+  const startTimer = useCallback(() => {
+    setTimer(COUNTDOWN_SECONDS);
+  }, []);
 
-  const showPasswordRules = newPassword.length > 0;
+  // Password validation checks
+  const ruleResults = useMemo(() => {
+    return PASSWORD_RULES.map((r) => ({
+      label: r.label,
+      passed: r.test(newPassword),
+    }));
+  }, [newPassword]);
 
-  // STEP 1: Handle Send OTP
-  const handleSendOtp = async (e: React.FormEvent) => {
+  // STEP 1: Submit Email
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError('');
     setFieldErrors({});
@@ -94,19 +95,19 @@ export default function ForgotPasswordPage() {
       setFieldErrors({ email: 'Email address is required.' });
       return;
     }
+
+    // Basic email format check
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      setFieldErrors({ email: 'Enter a valid email address.' });
+      setFieldErrors({ email: 'Please enter a valid email address.' });
       return;
     }
 
     setLoading(true);
 
     try {
-      // Send OTP to user email
       await requestPasswordResetOtp({ email: trimmedEmail });
+      startTimer();
       setStep(2);
-      setTimer(COUNTDOWN_SECONDS);
-      setIsTimerActive(true);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const detail = err.response?.data?.detail;
@@ -115,7 +116,7 @@ export default function ForgotPasswordPage() {
         } else if (Array.isArray(detail)) {
           setServerError(detail.map((d) => d.msg).join(' '));
         } else {
-          setServerError('Failed to send verification code. Please check your email.');
+          setServerError('Failed to send password reset code. Please try again.');
         }
       } else {
         setServerError('An unexpected error occurred. Please try again.');
@@ -125,27 +126,23 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  // STEP 2: Handle Resend OTP
+  // Resend OTP
   const handleResendOtp = useCallback(async () => {
-    if (!email.trim() || timer > 0 || resending || loading) return;
+    if (timer > 0 || resending || loading) return;
 
-    setResending(true);
     setServerError('');
     setResendSuccess('');
+    setResending(true);
 
     try {
       await requestPasswordResetOtp({ email: email.trim() });
       setResendSuccess('A new verification code has been sent to your email.');
       setTimer(COUNTDOWN_SECONDS);
-      setIsTimerActive(true);
-      setOtp('');
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const detail = err.response?.data?.detail;
         if (typeof detail === 'string') {
           setServerError(detail);
-        } else if (Array.isArray(detail)) {
-          setServerError(detail.map((d) => d.msg).join(' '));
         } else {
           setServerError('Failed to resend code. Please try again.');
         }
@@ -158,7 +155,7 @@ export default function ForgotPasswordPage() {
   }, [email, timer, resending, loading]);
 
   // STEP 2: Verify OTP
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError('');
     setResendSuccess('');
@@ -168,9 +165,28 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    // Move to Step 3 (Set New Password)
-    // TODO: When backend provides a standalone POST /auth/verify-reset-otp endpoint, integrate here
-    setStep(3);
+    setLoading(true);
+
+    try {
+      await verifyResetOtp({
+        email: email.trim(),
+        otp: otp.trim(),
+      });
+      setStep(3);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const detail = err.response?.data?.detail;
+        if (typeof detail === 'string') {
+          setServerError(detail);
+        } else {
+          setServerError('Invalid or expired verification code.');
+        }
+      } else {
+        setServerError('An unexpected error occurred during verification.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   // STEP 3: Reset Password
@@ -199,7 +215,6 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      // TODO: Connect to backend /auth/reset-password endpoint once available
       await resetPassword({
         email: email.trim(),
         otp: otp.trim(),
@@ -215,12 +230,6 @@ export default function ForgotPasswordPage() {
         } else if (Array.isArray(detail)) {
           setServerError(detail.map((d) => d.msg).join(' '));
         } else {
-          // If the backend endpoint is not yet implemented (e.g. 404 or 405), transition to success for demonstration while logging TODO
-          if (err.response?.status === 404 || err.response?.status === 405) {
-            // TODO: Backend /auth/reset-password endpoint is pending implementation
-            setStep(4);
-            return;
-          }
           setServerError('Failed to reset password. Please verify the code and try again.');
         }
       } else {
@@ -381,7 +390,7 @@ export default function ForgotPasswordPage() {
 
           {/* STEP 1: Enter Email */}
           {step === 1 && (
-            <form id="forgot-password-step1-form" onSubmit={handleSendOtp} noValidate className="flex flex-col gap-5">
+            <form id="forgot-password-step1-form" onSubmit={handleEmailSubmit} noValidate className="flex flex-col gap-5">
               <InputField
                 id="forgot-email"
                 name="email"
@@ -440,22 +449,22 @@ export default function ForgotPasswordPage() {
                     setOtp('');
                     setServerError('');
                   }}
-                  className="shrink-0 text-xs font-medium text-brand-cyan hover:underline"
+                  className="text-xs font-medium text-brand-cyan transition-colors hover:text-cyan-300"
                 >
                   Change
                 </button>
               </div>
 
-              {/* 6-Digit OTP */}
+              {/* OTP 6-box Input */}
               <div className="flex flex-col items-center gap-2">
-                <label className="text-xs font-medium uppercase tracking-wider text-brand-muted">
-                  Verification Code (6 Digits)
+                <label className="text-xs font-medium uppercase tracking-wide text-brand-muted">
+                  6-Digit Verification Code
                 </label>
                 <OtpInput
                   length={6}
                   value={otp}
-                  onChange={(val) => {
-                    setOtp(val);
+                  onChange={(v) => {
+                    setOtp(v);
                     if (serverError) setServerError('');
                   }}
                   disabled={loading}
@@ -466,7 +475,7 @@ export default function ForgotPasswordPage() {
 
               {/* Verify OTP Button */}
               <button
-                id="verify-reset-otp-btn"
+                id="forgot-verify-otp-btn"
                 type="submit"
                 disabled={loading || otp.length !== 6}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-cyan px-4 py-2.5 text-sm font-semibold text-brand-bg shadow-btn-cyan transition-all duration-200 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
@@ -477,7 +486,7 @@ export default function ForgotPasswordPage() {
               {/* Resend Section */}
               <div className="flex flex-col items-center justify-center gap-2 border-t border-brand-border/60 pt-4 text-center">
                 <p className="text-xs text-brand-muted">Didn't receive the code?</p>
-                {isTimerActive ? (
+                {timer > 0 ? (
                   <div className="flex items-center gap-1.5 text-xs text-brand-subtle">
                     <span>Resend available in</span>
                     <span className="font-mono font-semibold text-brand-cyan">{timer}s</span>
@@ -542,12 +551,12 @@ export default function ForgotPasswordPage() {
                 />
 
                 {/* Password Rules Checklist */}
-                {showPasswordRules && (
+                {newPassword.length > 0 && (
                   <ul
                     className="mt-1 flex flex-col gap-1 rounded-lg border border-brand-border bg-brand-card px-4 py-3"
                     aria-label="Password requirements"
                   >
-                    {passwordRuleStatus.map((rule) => (
+                    {ruleResults.map((rule) => (
                       <li
                         key={rule.label}
                         className={`flex items-center gap-2 text-xs transition-colors duration-150 ${

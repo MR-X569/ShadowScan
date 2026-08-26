@@ -162,11 +162,11 @@ class AuthService:
                 detail="Missing authorization code or state in Google OAuth callback.",
             )
 
-        if expected_state and not hmac.compare_digest(
+        if not expected_state or not hmac.compare_digest(
             state_value,
             expected_state,
         ):
-            logger.error("State parameter does not match the expected state cookie.")
+            logger.error("State parameter does not match or expected state cookie is missing.")
             self._raise_invalid_google_callback("OAuth state mismatch.")
 
         self._validate_google_oauth_state(state_value)
@@ -354,20 +354,58 @@ class AuthService:
     def forgot_password(
         self,
         email: str,
-    ):
-        pass
+    ) -> None:
+        """Trigger password reset OTP for the given email (anti-enumeration)."""
+        self.email_verification.send_password_reset_otp(email)
+
+    def verify_reset_otp(
+        self,
+        email: str,
+        otp: str,
+    ) -> None:
+        """Validate password reset OTP."""
+        self.email_verification.verify_reset_otp(email, otp)
 
     def reset_password(
         self,
-        token: str,
+        email: str,
+        otp: str,
         new_password: str,
-    ):
-        pass
+    ) -> None:
+        """Verify OTP, consume it, and update user password."""
+        user = get_user_by_email(self.db, email)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired OTP.",
+            )
+
+        self.email_verification.consume_reset_otp(email, otp)
+
+        user.hashed_password = hash_password(new_password)
+        self.db.commit()
+        self.db.refresh(user)
 
     def change_password(
         self,
         user: User,
         old_password: str,
         new_password: str,
-    ):
-        pass
+    ) -> None:
+        """Change password for an authenticated user."""
+        if not verify_password(old_password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Current password is incorrect.",
+            )
+
+        if old_password == new_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="New password cannot be the same as the current password.",
+            )
+
+        user.hashed_password = hash_password(new_password)
+        self.db.commit()
+        self.db.refresh(user)
+

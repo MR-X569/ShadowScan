@@ -3,9 +3,9 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Required for google-auth-oauthlib when running over plain HTTP (localhost dev).
-# This MUST be set before any OAuth flow is imported or executed.
-os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
+# OAUTHLIB_INSECURE_TRANSPORT should ONLY be set in development (.env file).
+# It must never be hardcoded here. Read from environment variable set externally.
+# In production this env var must NOT be set.
 
 from app.api.v1.auth import router as auth_router
 from app.api.v1.users import router as users_router
@@ -32,9 +32,13 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {
-        "message": "ShadowScan API Running"
-    }
+    return {"message": "ShadowScan API Running"}
+
+
+@app.get("/health")
+def health():
+    """Health check endpoint for deployment monitoring."""
+    return {"status": "ok"}
 
 
 app.include_router(auth_router)

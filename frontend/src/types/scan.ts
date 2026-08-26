@@ -21,15 +21,21 @@ export interface Finding {
   id: number;
   scan_id: number;
   vulnerability_name: string;
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  title?: string;
+  plugin?: string | null;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | string;
   description: string | null;
   recommendation: string | null;
+  evidence?: string | null;
   status: string;
+  created_at?: string | null;
 }
 
 export interface ScanStats {
   total: number;
   running: number;
+  pending?: number;
   completed: number;
   failed: number;
 }
+

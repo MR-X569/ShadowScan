@@ -39,6 +39,13 @@ class Settings(BaseSettings):
 
     database_url: str
 
+    # SMTP settings for email delivery
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_email: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "ShadowScan"
+
     # Load values from the local .env file when present
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -50,3 +57,4 @@ class Settings(BaseSettings):
 
 # Single settings instance shared across the application
 settings = Settings()
+

@@ -29,9 +29,24 @@ export async function getScan(scanId: number): Promise<ScanDetail> {
 
 /**
  * GET /scans/{scan_id}/findings — Retrieve findings for a given scan.
- * TODO: Verify this endpoint exists in the backend; add route if not yet implemented.
  */
 export async function getScanFindings(scanId: number): Promise<Finding[]> {
   const response = await api.get<Finding[]>(`/scans/${scanId}/findings`);
   return response.data;
 }
+
+/**
+ * GET /scans/findings/all — Retrieve all findings across all scans for user.
+ */
+export async function listAllFindings(): Promise<Finding[]> {
+  const response = await api.get<Finding[]>('/scans/findings/all');
+  return response.data;
+}
+
+/**
+ * DELETE /scans/{scan_id} — Delete a scan.
+ */
+export async function deleteScan(scanId: number): Promise<void> {
+  await api.delete(`/scans/${scanId}`);
+}
+
