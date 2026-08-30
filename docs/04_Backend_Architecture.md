@@ -1,71 +1,98 @@
-# Backend Architecture
+# Backend Architecture Specification
 
-## Overview
+## 1. Overview
 
-The backend follows a layered FastAPI architecture built to separate API endpoints, business logic, database access, and scanner functionality.
+The ShadowScan backend is built with **FastAPI** (Python 3.12) following a layered architecture designed to cleanly separate HTTP routing, business logic, persistence, security scanning orchestration, and AI intelligence.
 
-## Layered Structure
+---
 
-### API Layer
+## 2. Layered Structure
 
-The API layer defines versioned routes for authentication, user actions, and scan operations. It is responsible for request validation, route metadata, and error handling.
+```text
+┌────────────────────────────────────────────────────────┐
+│                      API Layer                         │
+│   (FastAPI Routers: /auth, /users, /scans, /admin, /ai)│
+└───────────────────────────┬────────────────────────────┘
+                            │
+┌───────────────────────────▼────────────────────────────┐
+│                    Service Layer                       │
+│ (AuthService, EmailVerificationService, ScanService,   │
+│  AdminService, AIService, PDFReportService)            │
+└──────────────┬───────────────────────────┬─────────────┘
+               │                           │
+┌──────────────▼──────────┐ ┌──────────────▼─────────────┐
+│  Persistence / CRUD     │ │   Scanner & AI Engines     │
+│ (SQLAlchemy, PostgreSQL,│ │ (ScannerEngine, Browser,   │
+│  Alembic, Redis)        │ │  45 Plugins, SSRF, Ollama) │
+└─────────────────────────┘ └────────────────────────────┘
+```
 
-Current API modules include:
+### 2.1 API Layer (`app/api/v1/`)
+Versioned REST endpoints handling request validation, dependency injection, and HTTP status codes:
+- `auth.py`: Registration, email OTP verification, resend OTP, login, password reset, and Google OAuth.
+- `users.py`: Profile retrieval and password change.
+- `scans.py`: Scan initiation, scan listing, detailed findings lookup, and PDF report downloads.
+- `admin.py`: Platform statistics, user enable/disable/delete management, global scan audits (gated by `get_current_admin`).
+- `ai.py`: Ollama health status, scan risk analysis, individual finding explanations, and scan-scoped security chat.
 
-- auth routes
-- user routes
-- scan routes
+### 2.2 Service Layer (`app/services/` & `app/ai/service.py`)
+Encapsulates business rules and operational workflows:
+- `AuthService`: Authentication, password hashing (`bcrypt`), JWT token generation, OAuth profile provisioning.
+- `EmailVerificationService`: 6-digit OTP creation, 60s cooldown rate limiting, attempt tracking (max 5), account verification, and unverified account recovery.
+- `ScanService`: Coordinates scan lifecycle, delegates execution to `ScannerEngine`, calculates risk scores, and manages findings persistence.
+- `AdminService`: Aggregates platform-wide metrics and manages user account states.
+- `AIService`: Sanitizes finding evidence, builds scan-scoped prompts, invokes Ollama (`llama3.2`), validates JSON structures, and provides offline fallbacks.
+- `PDFReportService`: Compiles branded technical PDF vulnerability reports via ReportLab.
 
-### Service Layer
+### 2.3 Scanning Layer (`app/scanner/`)
+- `ScannerEngine`: Central orchestrator initializing target validation, HTTP client session (`httpx`), Playwright browser observation, and plugin dispatch.
+- `BrowserScanner` (`browser.py`): Spawns isolated headless Chromium instances to execute client-side JavaScript, extract dynamic DOM, evaluate cookies/storage, and intercept network requests.
+- `Plugins` (`plugins/passive/`): 45 specialized passive detection plugins inspecting static HTTP headers, rendered HTML, SSL certificates, cookies, CORS, and injection patterns.
+- `ScanContext`: Shared in-memory data carrier passed sequentially across all plugins.
 
-The service layer contains the business logic that coordinates data access and scanner behavior. This is where operations such as user registration, scan creation, and result orchestration are managed.
+### 2.4 Security & SSRF Layer (`app/core/ssrf.py`)
+Multi-tier pre-flight target validation and runtime route interception:
+- Resolves DNS and blocks loopback (`127.0.0.0/8`), `0.0.0.0`, private ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), link-local (`169.254.0.0/16`), IPv6 loopback (`::1`), and cloud metadata IP (`169.254.169.254`).
+- Intercepts all subresource requests inside the Playwright browser.
 
-### Schema Layer
+---
 
-Pydantic schemas validate request and response models and define the contract between the API and clients. They help maintain consistency for authentication tokens, users, scans, and findings.
+## 3. Core Execution Flow
 
-### Model Layer
+```text
+User Submits Target URL
+         │
+         ▼
+[1] SSRF Pre-Flight Validation (Protocol & IP filtering)
+         │
+         ▼
+[2] Scan Record Created in PostgreSQL (Status: RUNNING)
+         │
+         ▼
+[3] Static HTTP Fetch (Status code, headers, initial HTML)
+         │
+         ▼
+[4] Playwright Browser Observation (Chromium renders page, extracts DOM/forms)
+         │
+         ▼
+[5] 45 Passive Plugins Executed against ScanContext
+         │
+         ▼
+[6] Findings Persisted in PostgreSQL & Risk Score Computed
+         │
+         ▼
+[7] Scan Status Updated (Status: COMPLETED)
+         │
+         ▼
+[8] Interactive Results, PDF Report & AI Analyst Available
+```
 
-SQLAlchemy models map the data model to the database. The project currently includes models for:
+---
 
-- User
-- Scan
-- Finding
-- Report
-- EmailVerification
+## 4. Database Schema & Migration Architecture
 
-### Scanner Layer
-
-The scanner engine is designed around a plugin architecture. Each plugin can run a specific check type, such as:
-
-- header validation
-- technology detection
-- sitemap or robots discovery
-- SSL evaluation
-
-The scanner manager coordinates plugin execution and consolidates findings into scan results.
-
-## Core Design Principles
-
-- keep routes thin and focused
-- isolate database access behind service logic
-- prefer modular scanning plugins over monolithic logic
-- maintain stateless configuration via environment variables
-- support future extensibility without rewriting the API surface
-
-## Execution Flow
-
-1. User submits a URL through the API.
-2. Auth and validation checks are performed.
-3. A scan record is created for the authenticated user.
-4. The scanner manager schedules plugin execution.
-5. Findings are collected and associated with the scan.
-6. Results are exposed via API endpoints for retrieval and reporting.
-
-## Security Considerations
-
-- environment-based secret management
-- JWT-based access control
-- database-level ownership checks for user resources
-- CORS configuration for front-end access in development
-- optional OAuth integration for login extensibility
+Managed via **Alembic** (Current head: `682a0b12cd34`):
+- `users`: User profiles, hashed credentials, roles (`USER`, `ADMIN`), active and verification flags.
+- `email_verifications`: 6-digit OTP codes, purpose (`EMAIL_VERIFICATION`, `PASSWORD_RESET`), attempt counters, expiration, and server defaults.
+- `scans`: Target URL, scan status (`PENDING`, `RUNNING`, `COMPLETED`, `FAILED`), risk scores, timestamps, cascading foreign keys.
+- `findings`: Vulnerability names, plugins, severities (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`), descriptions, remediation steps, and evidence.

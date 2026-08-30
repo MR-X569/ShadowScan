@@ -1,79 +1,83 @@
-# API Design
+# API Design Specification
 
-## API Style
+## 1. Overview
 
-The API is built with FastAPI and follows a versioned route structure under /api/v1. The service exposes a modern REST-style interface with JSON responses and typed schemas.
+The ShadowScan API is built with **FastAPI** following REST conventions with JSON payloads and Pydantic schema validation.
 
-## Base URL
+**Base URLs**:
+- Direct backend: `http://localhost:8000/` (prefixed routes under `/auth`, `/users`, `/scans`, `/admin`, `/ai`)
+- Production reverse proxy: `https://scanner.example.com/api/`
 
-- /api/v1
+---
 
-## Authentication Endpoints
+## 2. Authentication & Verification Endpoints (`/auth`)
 
-### POST /api/v1/auth/register
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :---: |
+| `POST` | `/auth/register` | Register a new account or recover unverified account | No |
+| `POST` | `/auth/login` | Authenticate user and issue JWT token | No |
+| `POST` | `/auth/verify-email` | Verify email with 6-digit OTP code | No |
+| `POST` | `/auth/resend-otp` | Request new OTP (enforces 60s cooldown) | No |
+| `POST` | `/auth/forgot-password` | Trigger password reset OTP | No |
+| `POST` | `/auth/verify-reset-otp`| Verify password reset OTP code | No |
+| `POST` | `/auth/reset-password` | Set new password using verified OTP | No |
+| `GET` | `/auth/google/login` | Initiate Google OAuth 2.0 flow | No |
+| `GET` | `/auth/google/callback` | Google OAuth callback handler | No |
 
-Creates a new user account.
+---
 
-### POST /api/v1/auth/login
+## 3. User Endpoints (`/users`)
 
-Authenticates a user and returns a token payload.
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :---: |
+| `GET` | `/users/me` | Retrieve authenticated user profile | Bearer JWT |
+| `POST` | `/users/change-password` | Update account password | Bearer JWT |
 
-## User Endpoints
+---
 
-### GET /api/v1/users/me
+## 4. Scan Management Endpoints (`/scans`)
 
-Returns the authenticated user's profile information.
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :---: |
+| `POST` | `/scans` | Create and execute a new security scan | Bearer JWT |
+| `GET` | `/scans` | List authenticated user's scan history | Bearer JWT |
+| `GET` | `/scans/{scan_id}` | Retrieve scan details and status | Bearer JWT |
+| `DELETE` | `/scans/{scan_id}` | Delete a scan and associated findings | Bearer JWT |
+| `GET` | `/scans/{scan_id}/findings` | Retrieve findings for a specific scan | Bearer JWT |
+| `GET` | `/scans/{scan_id}/report` | Download compiled PDF vulnerability report | Bearer JWT |
 
-### POST /api/v1/users/change-password
+---
 
-Updates the current user's password after validation.
+## 5. AI Security Analyst Endpoints (`/ai` & `/scans/{id}/ai`)
 
-## Scan Endpoints
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :---: |
+| `GET` | `/ai/status` | Check operational availability of Ollama | No |
+| `GET` | `/scans/{scan_id}/ai/analysis` | Retrieve structured AI scan risk analysis | Bearer JWT |
+| `POST` | `/scans/{scan_id}/ai/analysis` | Generate or refresh structured AI scan analysis | Bearer JWT |
+| `POST` | `/scans/{scan_id}/ai/findings/{fid}/explain` | Explain finding with AI impact & remediation | Bearer JWT |
+| `POST` | `/scans/{scan_id}/ai/chat` | Scan-scoped interactive security chat | Bearer JWT |
 
-### POST /api/v1/scans
+---
 
-Creates a new scan for the authenticated user.
+## 6. Admin Management Endpoints (`/admin`)
 
-### GET /api/v1/scans
+*All admin endpoints require an authenticated user with `role = "ADMIN"`.*
 
-Lists the current user's scans in reverse chronological order.
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :---: |
+| `GET` | `/admin/stats` | Platform-wide user, scan, and finding metrics | Admin JWT |
+| `GET` | `/admin/users` | List all platform users | Admin JWT |
+| `PUT` | `/admin/users/{user_id}/disable` | Disable user account (`is_active = False`) | Admin JWT |
+| `PUT` | `/admin/users/{user_id}/enable` | Enable user account (`is_active = True`) | Admin JWT |
+| `DELETE` | `/admin/users/{user_id}` | Delete user account and associated scans | Admin JWT |
+| `GET` | `/admin/scans` | List all platform scans | Admin JWT |
+| `GET` | `/admin/findings` | List all platform findings | Admin JWT |
 
-### GET /api/v1/scans/{scan_id}
+---
 
-Retrieves one scan by ID and enforces user ownership checks.
+## 7. Health & Monitoring
 
-### GET /api/v1/scans/{scan_id}/findings
-
-Returns all findings attached to a selected scan.
-
-### GET /api/v1/scans/findings/all
-
-Returns all findings for the current user across scans.
-
-### DELETE /api/v1/scans/{scan_id}
-
-Deletes a scan and its related data.
-
-## Response Conventions
-
-- Standard JSON payloads
-- Pydantic response models for deterministic contracts
-- HTTP error responses for validation and authorization failures
-- User ownership checks for protected scan resources
-
-## Security Model
-
-- authentication required for profile and scan operations
-- JWT token-based access
-- protected endpoints enforce the current authenticated user context
-- additional validation is performed at the service layer before mutating data
-
-## Future API Expansion
-
-Planned expansion includes:
-
-- richer report generation endpoints
-- scheduled scanning operations
-- AI-assistant query routes
-- filtering and sorting for scan history
-- export and download endpoints for reports
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :---: |
+| `GET` | `/health` | Container & orchestrator health check (`{"status": "ok"}`) | No |
