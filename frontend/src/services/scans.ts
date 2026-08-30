@@ -50,3 +50,13 @@ export async function deleteScan(scanId: number): Promise<void> {
   await api.delete(`/scans/${scanId}`);
 }
 
+/**
+ * GET /scans/{scan_id}/report/pdf — Download a professional PDF report.
+ * Returns a Blob with MIME type application/pdf.
+ */
+export async function downloadScanPdf(scanId: number): Promise<Blob> {
+  const response = await api.get(`/scans/${scanId}/report/pdf`, {
+    responseType: 'blob',
+  });
+  return response.data as Blob;
+}

@@ -1,3 +1,4 @@
+from datetime import datetime, UTC
 from app.core.enums import VerificationPurpose
 from sqlalchemy import (
     Boolean,
@@ -7,6 +8,7 @@ from sqlalchemy import (
     Integer,
     String,
     Enum,
+    text,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -43,12 +45,14 @@ class EmailVerification(Base):
     attempts = Column(
         Integer,
         default=0,
+        server_default=text("0"),
         nullable=False,
     )
 
     used = Column(
         Boolean,
         default=False,
+        server_default=text("false"),
         nullable=False,
     )
 
@@ -59,6 +63,7 @@ class EmailVerification(Base):
 
     created_at = Column(
         DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
         server_default=func.now(),
         nullable=False,
     )

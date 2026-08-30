@@ -1,4 +1,7 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Query
+import io
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -6,6 +9,8 @@ from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.scan import FindingResponse, ScanCreate, ScanListResponse, ScanResponse
 from app.services.scan_service import ScanService
+from app.services.pdf_report_service import PdfReportService
+from app.crud.finding import get_findings_by_scan
 
 router = APIRouter(
     prefix="/scans",
@@ -123,6 +128,61 @@ def get_scan_findings(
 ) -> list[FindingResponse]:
     service = ScanService(db)
     return service.get_scan_findings(current_user, scan_id)
+
+
+# ---------------------------------------------------------------------------
+# GET /scans/{scan_id}/report/pdf — Download professional PDF report
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/{scan_id}/report/pdf",
+    summary="Download PDF report",
+    description=(
+        "Generates and returns a professional PDF vulnerability report for the given scan. "
+        "Returns 404 if the scan does not exist, 403 if it belongs to another user."
+    ),
+    response_class=StreamingResponse,
+    responses={
+        200: {
+            "content": {"application/pdf": {}},
+            "description": "PDF report file",
+        }
+    },
+    tags=["Scans"],
+)
+def download_scan_pdf_report(
+    scan_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> StreamingResponse:
+    # 1. Verify scan exists and is owned by the current user
+    service = ScanService(db)
+    scan = service._get_scan_or_404(scan_id)
+    service._assert_owner(scan, current_user)
+
+    # 2. Fetch all findings for this scan
+    findings = get_findings_by_scan(db, scan_id)
+
+    # 3. Generate PDF bytes
+    try:
+        pdf_bytes = PdfReportService().generate(scan, findings)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="PDF generation failed. Please try again.",
+        ) from exc
+
+    # 4. Stream back as a downloadable file
+    filename = f"shadowscan-report-{scan_id}.pdf"
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(pdf_bytes)),
+        },
+    )
 
 
 # ---------------------------------------------------------------------------

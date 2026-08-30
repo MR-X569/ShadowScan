@@ -46,6 +46,13 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = "ShadowScan"
 
+    # AI Security Analyst (Ollama) settings
+    ai_enabled: bool = True
+    ai_provider: str = "ollama"
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "llama3.2"
+    ollama_timeout: float = 60.0
+
     # Load values from the local .env file when present
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -47,20 +47,43 @@ class AuthService:
         user: UserCreate,
     ) -> User:
 
-        if get_user_by_username(
-            self.db,
-            user.username,
-        ):
-            raise ValueError(
-                "Username already exists."
-            )
-
-        if get_user_by_email(
+        existing_user_by_email = get_user_by_email(
             self.db,
             user.email,
-        ):
+        )
+        existing_user_by_username = get_user_by_username(
+            self.db,
+            user.username,
+        )
+
+        if existing_user_by_email:
+            if existing_user_by_email.is_verified:
+                raise ValueError(
+                    "Email already exists."
+                )
+
+            # Recovering or re-registering an unverified account
+            if existing_user_by_username and existing_user_by_username.id != existing_user_by_email.id:
+                raise ValueError(
+                    "Username already exists."
+                )
+
+            existing_user_by_email.username = user.username
+            existing_user_by_email.full_name = user.full_name
+            existing_user_by_email.hashed_password = hash_password(
+                user.password,
+            )
+            self.db.commit()
+            self.db.refresh(existing_user_by_email)
+
+            self.email_verification.send_verification_otp(
+                existing_user_by_email,
+            )
+            return existing_user_by_email
+
+        if existing_user_by_username:
             raise ValueError(
-                "Email already exists."
+                "Username already exists."
             )
 
         new_user = User(

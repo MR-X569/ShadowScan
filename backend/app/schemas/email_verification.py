@@ -1,9 +1,9 @@
 import re
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class VerifyEmailRequest(BaseModel):
-    email: str
+    email: EmailStr
     otp: str = Field(
         min_length=6,
         max_length=6,
@@ -11,15 +11,15 @@ class VerifyEmailRequest(BaseModel):
 
 
 class ResendOTPRequest(BaseModel):
-    email: str
+    email: EmailStr
 
 
 class ForgotPasswordRequest(BaseModel):
-    email: str
+    email: EmailStr
 
 
 class VerifyResetOtpRequest(BaseModel):
-    email: str
+    email: EmailStr
     otp: str = Field(
         min_length=6,
         max_length=6,
@@ -27,7 +27,7 @@ class VerifyResetOtpRequest(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
-    email: str
+    email: EmailStr
     otp: str = Field(
         min_length=6,
         max_length=6,

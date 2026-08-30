@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Shield,
+  ShieldCheck,
   LayoutDashboard,
   ScanLine,
   AlertTriangle,
@@ -25,6 +26,8 @@ const navItems = [
   { label: 'Profile', path: '/profile', icon: UserIcon },
   { label: 'Settings', path: '/settings', icon: SettingsIcon },
 ];
+
+const adminNavItem = { label: 'Admin', path: '/admin', icon: ShieldCheck };
 
 export default function AppHeader({ user }: AppHeaderProps) {
   const location = useLocation();
@@ -55,7 +58,7 @@ export default function AppHeader({ user }: AppHeaderProps) {
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-1.5 md:flex" aria-label="App Navigation">
-          {navItems.map((item) => {
+          {[...navItems, ...(user?.role === 'ADMIN' ? [adminNavItem] : [])].map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
             return (
@@ -106,7 +109,7 @@ export default function AppHeader({ user }: AppHeaderProps) {
       {mobileMenuOpen && (
         <div className="border-t border-brand-border bg-brand-surface px-4 py-4 md:hidden">
           <nav className="flex flex-col gap-1">
-            {navItems.map((item) => {
+            {[...navItems, ...(user?.role === 'ADMIN' ? [adminNavItem] : [])].map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               return (

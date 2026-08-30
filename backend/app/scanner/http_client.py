@@ -119,25 +119,22 @@ class HttpClientConfig:
 # ---------------------------------------------------------------------------
 
 
+from app.core.ssrf import SSRFSecurityError, validate_url_for_ssrf
+
+
 class RetryTransport(httpx.AsyncBaseTransport):
     """
     Thin ``httpx.AsyncBaseTransport`` wrapper that adds exponential-backoff
-    retries — implemented without any external dependency.
+    retries and strict SSRF destination validation.
 
     Retries are triggered by:
       - Network-level exceptions (``ConnectError``, timeouts, protocol errors).
       - HTTP responses with retryable status codes (``429``, ``5xx``).
 
-    On the final attempt the response is returned regardless of status code,
-    allowing callers to observe and handle the error themselves.
-
-    Args:
-        transport:        Underlying async transport to delegate to.
-        max_retries:      Maximum number of retry attempts (not counting the
-                          initial attempt). ``0`` disables retries.
-        backoff_factor:   Multiplier for the sleep interval between retries.
-                          Sleep = ``factor * 2^(attempt - 1)`` seconds.
-        retryable_codes:  Set of HTTP status codes that trigger a retry.
+    SSRF Protection:
+      - Every outbound request URL (including redirects) is validated against
+        non-routable, private, loopback, and cloud metadata network boundaries.
+      - Disallowed destinations raise ``SSRFSecurityError`` immediately without retry.
     """
 
     def __init__(
@@ -157,7 +154,8 @@ class RetryTransport(httpx.AsyncBaseTransport):
         request: httpx.Request,
     ) -> httpx.Response:
         """
-        Handle a single request, retrying on transient failures.
+        Handle a single request, validating destination for SSRF safety and
+        retrying on transient network failures.
 
         Args:
             request: The outgoing ``httpx.Request`` object.
@@ -166,8 +164,12 @@ class RetryTransport(httpx.AsyncBaseTransport):
             The ``httpx.Response`` from the server.
 
         Raises:
-            Network-level exception if all retry attempts are exhausted.
+            SSRFSecurityError: If destination resolves to a private/internal IP.
+            Network-level exception: If all retry attempts are exhausted.
         """
+        # --- Pre-request SSRF Validation (Validates initial URL & all redirects) ---
+        validate_url_for_ssrf(str(request.url))
+
         last_exception: Exception | None = None
 
         for attempt in range(self._max_retries + 1):

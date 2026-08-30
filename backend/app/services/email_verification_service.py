@@ -1,3 +1,4 @@
+from datetime import datetime, UTC
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -20,6 +21,7 @@ from app.models.user import User
 from app.services.email_service import EmailService
 
 MAX_OTP_ATTEMPTS = 5
+RESEND_COOLDOWN_SECONDS = 60
 
 
 class EmailVerificationService:
@@ -46,6 +48,9 @@ class EmailVerificationService:
             otp=otp,
             purpose=VerificationPurpose.EMAIL_VERIFICATION,
             expires_at=get_expiry_time(),
+            created_at=datetime.now(UTC),
+            attempts=0,
+            used=False,
         )
 
         create_verification(
@@ -142,6 +147,24 @@ class EmailVerificationService:
                 detail="Email is already verified.",
             )
 
+        # Rate limit cooldown on active OTP
+        active_verification = get_active_verification(
+            self.db,
+            user.id,
+            VerificationPurpose.EMAIL_VERIFICATION,
+        )
+        if active_verification and active_verification.created_at:
+            created_at = active_verification.created_at
+            if created_at.tzinfo is None:
+                created_at = created_at.replace(tzinfo=UTC)
+            elapsed = (datetime.now(UTC) - created_at).total_seconds()
+            if elapsed < RESEND_COOLDOWN_SECONDS and active_verification.attempts < MAX_OTP_ATTEMPTS:
+                remaining = int(RESEND_COOLDOWN_SECONDS - elapsed)
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail=f"Please wait {remaining} seconds before requesting a new OTP.",
+                )
+
         self.send_verification_otp(user)
 
     # ------------------------------------------------------------------
@@ -172,6 +195,9 @@ class EmailVerificationService:
             otp=otp,
             purpose=VerificationPurpose.PASSWORD_RESET,
             expires_at=get_expiry_time(),
+            created_at=datetime.now(UTC),
+            attempts=0,
+            used=False,
         )
 
         create_verification(self.db, verification)

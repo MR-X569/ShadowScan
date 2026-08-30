@@ -11,6 +11,7 @@ import ScanResultPage from '@/pages/Result';
 import ScansPage from '@/pages/Scans';
 import FindingsPage from '@/pages/Findings';
 import AuthCallbackPage from '@/pages/AuthCallback';
+import AdminPage from '@/pages/Admin';
 import { getToken } from '@/services/auth';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -101,6 +102,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <ScanResultPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminPage />
           </ProtectedRoute>
         }
       />

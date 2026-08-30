@@ -9,9 +9,10 @@ ScanResponse     — full detail returned by GET /scans/{id}
 
 from datetime import datetime
 
-from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, field_validator
 
 from app.core.enums import ScanStatus
+from app.core.ssrf import validate_url_for_ssrf
 
 
 # ---------------------------------------------------------------------------
@@ -27,6 +28,13 @@ class ScanCreate(BaseModel):
         description="The fully-qualified HTTP/HTTPS URL to scan.",
         examples=["https://example.com"],
     )
+
+    @field_validator("target_url")
+    @classmethod
+    def validate_ssrf_safety(cls, v: AnyHttpUrl) -> AnyHttpUrl:
+        """Reject targets pointing or resolving to private/internal/cloud metadata networks."""
+        validate_url_for_ssrf(str(v))
+        return v
 
 
 # ---------------------------------------------------------------------------

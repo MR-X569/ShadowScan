@@ -32,6 +32,7 @@ from __future__ import annotations
 import logging
 
 from app.scanner.context import ScanContext
+from app.scanner.browser import BrowserScanner
 from app.scanner.http_client import create_http_client
 from app.scanner.manager import PluginManager
 from app.scanner.result import Finding
@@ -61,8 +62,13 @@ class ScannerEngine:
         )
     """
 
-    def __init__(self, plugin_manager: PluginManager) -> None:
+    def __init__(
+        self,
+        plugin_manager: PluginManager,
+        browser_scanner: BrowserScanner | None = None,
+    ) -> None:
         self._plugin_manager = plugin_manager
+        self._browser_scanner = browser_scanner or BrowserScanner()
 
     # ------------------------------------------------------------------
     # Public interface
@@ -133,6 +139,14 @@ class ScannerEngine:
                     target_url,
                     exc,
                 )
+
+            # Browser observation is additive and deliberately independent
+            # from the HTTP scanner: a Chromium failure must not stop plugins.
+            try:
+                await self._browser_scanner.scan(context)
+            except Exception as exc:  # noqa: BLE001
+                logger.exception("Browser scan failed in isolation for '%s': %s", target_url, exc)
+                context.metadata["browser"] = {"status": "failed", "error": str(exc)}
 
             # ------------------------------------------------------------------
             # 3. Load plugin instances.

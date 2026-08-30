@@ -81,6 +81,7 @@ export default function RegisterPage() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
+  const [emailDeliveryFailed, setEmailDeliveryFailed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -99,6 +100,7 @@ export default function RegisterPage() {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
     if (serverError) setServerError('');
+    if (emailDeliveryFailed) setEmailDeliveryFailed(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,6 +114,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     setServerError('');
+    setEmailDeliveryFailed(false);
 
     try {
       await register({
@@ -124,7 +127,18 @@ export default function RegisterPage() {
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const detail = err.response?.data?.detail;
-        if (typeof detail === 'string') {
+        const isDeliveryFailure =
+          typeof detail === 'string' &&
+          (detail.toLowerCase().includes('failed to send verification email') ||
+            detail.toLowerCase().includes('verification code') ||
+            detail.toLowerCase().includes('could not deliver'));
+
+        if (isDeliveryFailure) {
+          setEmailDeliveryFailed(true);
+          setServerError(
+            'Your account was created, but we could not deliver the verification code email. You can verify your email or resend the code.'
+          );
+        } else if (typeof detail === 'string') {
           setServerError(detail);
         } else if (Array.isArray(detail)) {
           setServerError(detail.map((d) => d.msg).join(' '));
@@ -185,7 +199,19 @@ export default function RegisterPage() {
               className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400"
               role="alert"
             >
-              {serverError}
+              <p>{serverError}</p>
+              {emailDeliveryFailed && form.email.trim() && (
+                <button
+                  type="button"
+                  id="register-verify-now-btn"
+                  onClick={() =>
+                    navigate('/verify-email', { state: { email: form.email.trim() } })
+                  }
+                  className="mt-2.5 inline-flex items-center rounded-md bg-brand-cyan/20 px-3 py-1.5 text-xs font-semibold text-brand-cyan hover:bg-brand-cyan/30 transition-colors"
+                >
+                  Go to Verification Page →
+                </button>
+              )}
             </div>
           )}
 

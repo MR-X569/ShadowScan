@@ -48,6 +48,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(Boolean(savedEmail));
+  const [isUnverifiedError, setIsUnverifiedError] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -56,6 +57,7 @@ export default function LoginPage() {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
     if (serverError) setServerError('');
+    if (isUnverifiedError) setIsUnverifiedError(false);
   };
 
   const handleGoogleLogin = () => {
@@ -73,6 +75,7 @@ export default function LoginPage() {
 
     setLoading(true);
     setServerError('');
+    setIsUnverifiedError(false);
 
     try {
       if (rememberMe) {
@@ -86,7 +89,15 @@ export default function LoginPage() {
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const detail = err.response?.data?.detail;
-        if (typeof detail === 'string') {
+        const status = err.response?.status;
+        const isUnverified =
+          status === 403 ||
+          (typeof detail === 'string' && detail.toLowerCase().includes('verify your email'));
+
+        if (isUnverified) {
+          setIsUnverifiedError(true);
+          setServerError('Please verify your email address before logging in.');
+        } else if (typeof detail === 'string') {
           setServerError(detail);
         } else if (Array.isArray(detail)) {
           setServerError(detail.map((d) => d.msg).join(' '));
@@ -159,7 +170,19 @@ export default function LoginPage() {
               className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400"
               role="alert"
             >
-              {serverError}
+              <p>{serverError}</p>
+              {isUnverifiedError && form.email.trim() && (
+                <button
+                  type="button"
+                  id="login-verify-now-btn"
+                  onClick={() =>
+                    navigate('/verify-email', { state: { email: form.email.trim() } })
+                  }
+                  className="mt-2.5 inline-flex items-center rounded-md bg-brand-cyan/20 px-3 py-1.5 text-xs font-semibold text-brand-cyan hover:bg-brand-cyan/30 transition-colors"
+                >
+                  Verify Email Now →
+                </button>
+              )}
             </div>
           )}
 

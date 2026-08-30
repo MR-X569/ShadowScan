@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.auth import router as auth_router
 from app.api.v1.users import router as users_router
 from app.api.v1.scans import router as scans_router
+from app.api.v1.admin import router as admin_router
+from app.api.v1.ai import router as ai_router
 
 app = FastAPI(
     title="ShadowScan API",
@@ -44,3 +46,5 @@ def health():
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(scans_router)
+app.include_router(admin_router)
+app.include_router(ai_router)
