@@ -6,11 +6,11 @@ venv
 .venv
 node_modules
 **/node_modules
-frontend/dist
 **/__pycache__
 **/.pytest_cache
 *.pyc
 *.pyo
 *.log
+
 temp1
 docs
