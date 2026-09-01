@@ -112,18 +112,35 @@ class AuthService:
         password: str,
     ) -> Token:
 
-        user = get_user_by_email(
-            self.db,
-            username,
-        ) or get_user_by_username(
-            self.db,
-            username,
-        )
+        identifier = username.strip() if username else ""
+        if not identifier:
+            raise ValueError(
+                "Username or email is required."
+            )
+
+        # Check by email or username based on format
+        if "@" in identifier:
+            user = get_user_by_email(
+                self.db,
+                identifier,
+            ) or get_user_by_username(
+                self.db,
+                identifier,
+            )
+        else:
+            user = get_user_by_username(
+                self.db,
+                identifier,
+            ) or get_user_by_email(
+                self.db,
+                identifier,
+            )
 
         if not user:
             raise ValueError(
                 "Invalid username or password."
             )
+
 
         if not verify_password(
             password,
@@ -267,21 +284,26 @@ class AuthService:
         google_id: str | None,
     ) -> Token:
         """Find or create a user from a validated Google identity."""
-        # The current User model has no fields for Google ID or profile image.
-        # Keep the integration migration-free until those fields are introduced.
         del picture, google_id
 
-        user = get_user_by_email(self.db, email)
+        normalized_email = email.strip().lower()
+        user = get_user_by_email(self.db, normalized_email)
 
         if user is None:
             user = User(
                 username=self._generate_google_username(),
-                email=email,
+                email=normalized_email,
                 full_name=full_name,
                 hashed_password=hash_password(secrets.token_urlsafe(32)),
                 is_verified=True,
             )
             user = create_user(self.db, user)
+        else:
+            # If account already exists with this email, ensure it is verified
+            if not user.is_verified:
+                user.is_verified = True
+                self.db.commit()
+                self.db.refresh(user)
 
         access_token = create_access_token(
             {
@@ -307,6 +329,11 @@ class AuthService:
                 detail="Google OAuth is not configured.",
             )
 
+        # Allow HTTP redirect in local development
+        if settings.google_redirect_uri and settings.google_redirect_uri.startswith("http://"):
+            import os
+            os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+
         flow = Flow.from_client_config(
             {
                 "web": {
@@ -328,6 +355,7 @@ class AuthService:
         flow.redirect_uri = settings.google_redirect_uri
 
         return flow
+
 
     def _create_google_oauth_state(self) -> str:
         payload = f"{int(time.time())}:{secrets.token_urlsafe(32)}"

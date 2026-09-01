@@ -1,38 +1,65 @@
 import re
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
+
+from app.utils.email_validation import validate_and_normalize_email
 
 
 class VerifyEmailRequest(BaseModel):
-    email: EmailStr
+    email: str
     otp: str = Field(
         min_length=6,
         max_length=6,
     )
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_format(cls, v: str) -> str:
+        return validate_and_normalize_email(v)
 
 
 class ResendOTPRequest(BaseModel):
-    email: EmailStr
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_format(cls, v: str) -> str:
+        return validate_and_normalize_email(v)
 
 
 class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_format(cls, v: str) -> str:
+        return validate_and_normalize_email(v)
 
 
 class VerifyResetOtpRequest(BaseModel):
-    email: EmailStr
+    email: str
     otp: str = Field(
         min_length=6,
         max_length=6,
     )
 
+    @field_validator("email")
+    @classmethod
+    def validate_email_format(cls, v: str) -> str:
+        return validate_and_normalize_email(v)
+
 
 class ResetPasswordRequest(BaseModel):
-    email: EmailStr
+    email: str
     otp: str = Field(
         min_length=6,
         max_length=6,
     )
     password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_format(cls, v: str) -> str:
+        return validate_and_normalize_email(v)
 
     @field_validator("password")
     @classmethod
@@ -52,4 +79,4 @@ class ResetPasswordRequest(BaseModel):
             raise ValueError(
                 f"Password must contain: {', '.join(errors)}."
             )
-        return v
+        return v

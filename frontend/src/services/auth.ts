@@ -12,12 +12,14 @@ import type { UserProfile } from '@/types/user';
 /**
  * Login — the backend uses OAuth2PasswordRequestForm which expects
  * application/x-www-form-urlencoded with "username" and "password" fields.
- * The "username" field accepts the user's email address.
+ * The "username" field accepts the user's username OR email address.
  */
 export async function login(data: LoginRequest): Promise<AuthResponse> {
   const formData = new URLSearchParams();
-  formData.append('username', data.email);
+  const usernameOrEmail = data.identifier || data.username || data.email || '';
+  formData.append('username', usernameOrEmail.trim());
   formData.append('password', data.password);
+
 
   const response = await api.post<{ access_token: string; token_type: string }>(
     '/auth/login',

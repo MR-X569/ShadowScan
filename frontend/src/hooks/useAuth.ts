@@ -10,9 +10,9 @@ interface UseAuthResult {
 
 /**
  * Fetches the current authenticated user from GET /users/me.
- * Redirects to /login if no token is found or if the request fails (401).
+ * If requireAuth is true, redirects to /login if no token is found or request fails.
  */
-export function useAuth(): UseAuthResult {
+export function useAuth(requireAuth: boolean = false): UseAuthResult {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,11 @@ export function useAuth(): UseAuthResult {
   useEffect(() => {
     const token = getToken();
     if (!token) {
-      navigate('/login', { replace: true });
+      setUser(null);
+      setLoading(false);
+      if (requireAuth) {
+        navigate('/login', { replace: true });
+      }
       return;
     }
 
@@ -29,12 +33,15 @@ export function useAuth(): UseAuthResult {
         setUser(profile);
       })
       .catch(() => {
-        navigate('/login', { replace: true });
+        setUser(null);
+        if (requireAuth) {
+          navigate('/login', { replace: true });
+        }
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [navigate]);
+  }, [navigate, requireAuth]);
 
   return { user, loading };
 }

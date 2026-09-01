@@ -6,23 +6,25 @@ import axios from 'axios';
 import InputField from '@/components/ui/InputField';
 import { login, getGoogleLoginUrl } from '@/services/auth';
 
+import { isValidLoginIdentifier } from '@/utils/validation';
+
 interface FormState {
-  email: string;
+  identifier: string;
   password: string;
 }
 
 interface FormErrors {
-  email?: string;
+  identifier?: string;
   password?: string;
 }
 
 function validateForm(form: FormState): FormErrors {
   const errors: FormErrors = {};
 
-  if (!form.email.trim()) {
-    errors.email = 'Email address is required.';
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    errors.email = 'Enter a valid email address.';
+  if (!form.identifier.trim()) {
+    errors.identifier = 'Username or email is required.';
+  } else if (!isValidLoginIdentifier(form.identifier)) {
+    errors.identifier = 'Enter a valid email address or username (at least 3 characters).';
   }
 
   if (!form.password) {
@@ -35,19 +37,24 @@ function validateForm(form: FormState): FormErrors {
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const locationState = location.state as { emailVerified?: boolean; email?: string } | null;
+  const locationState = location.state as {
+    emailVerified?: boolean;
+    email?: string;
+    redirect?: string;
+    targetUrl?: string;
+  } | null;
 
-  const savedEmail = localStorage.getItem('shadowscan_remembered_email') || '';
+  const savedIdentifier = localStorage.getItem('shadowscan_remembered_identifier') || '';
 
   const [form, setForm] = useState<FormState>({
-    email: locationState?.email || savedEmail,
+    identifier: locationState?.email || savedIdentifier,
     password: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(Boolean(savedEmail));
+  const [rememberMe, setRememberMe] = useState(Boolean(savedIdentifier));
   const [isUnverifiedError, setIsUnverifiedError] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,13 +86,16 @@ export default function LoginPage() {
 
     try {
       if (rememberMe) {
-        localStorage.setItem('shadowscan_remembered_email', form.email);
+        localStorage.setItem('shadowscan_remembered_identifier', form.identifier);
       } else {
-        localStorage.removeItem('shadowscan_remembered_email');
+        localStorage.removeItem('shadowscan_remembered_identifier');
       }
 
-      await login({ email: form.email, password: form.password });
-      navigate('/dashboard');
+      await login({ identifier: form.identifier, password: form.password });
+      const targetDestination = locationState?.redirect || '/dashboard';
+      navigate(targetDestination, {
+        state: locationState?.targetUrl ? { targetUrl: locationState.targetUrl } : undefined,
+      });
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const detail = err.response?.data?.detail;
@@ -111,6 +121,7 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
 
 
   return (
@@ -171,12 +182,12 @@ export default function LoginPage() {
               role="alert"
             >
               <p>{serverError}</p>
-              {isUnverifiedError && form.email.trim() && (
+              {isUnverifiedError && form.identifier.trim() && (
                 <button
                   type="button"
                   id="login-verify-now-btn"
                   onClick={() =>
-                    navigate('/verify-email', { state: { email: form.email.trim() } })
+                    navigate('/verify-email', { state: { email: form.identifier.trim() } })
                   }
                   className="mt-2.5 inline-flex items-center rounded-md bg-brand-cyan/20 px-3 py-1.5 text-xs font-semibold text-brand-cyan hover:bg-brand-cyan/30 transition-colors"
                 >
@@ -187,19 +198,20 @@ export default function LoginPage() {
           )}
 
           <form id="login-form" onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-            {/* Email */}
+            {/* Username or Email */}
             <InputField
-              id="login-email"
-              name="email"
-              label="Email Address"
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              value={form.email}
+              id="login-identifier"
+              name="identifier"
+              label="Username or Email"
+              type="text"
+              placeholder="you@example.com or username"
+              autoComplete="username email"
+              value={form.identifier}
               onChange={handleChange}
-              error={errors.email}
+              error={errors.identifier}
               disabled={loading}
             />
+
 
             {/* Password */}
             <InputField

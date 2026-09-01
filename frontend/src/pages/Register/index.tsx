@@ -5,8 +5,10 @@ import axios from 'axios';
 
 import InputField from '@/components/ui/InputField';
 import { register, getGoogleLoginUrl } from '@/services/auth';
+import { isValidEmail } from '@/utils/validation';
 
 interface FormState {
+
   full_name: string;
   username: string;
   email: string;
@@ -36,6 +38,7 @@ const PASSWORD_RULES: PasswordRule[] = [
 ];
 
 function validateForm(form: FormState): FormErrors {
+
   const errors: FormErrors = {};
 
   if (!form.full_name.trim()) {
@@ -50,9 +53,10 @@ function validateForm(form: FormState): FormErrors {
 
   if (!form.email.trim()) {
     errors.email = 'Email address is required.';
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    errors.email = 'Enter a valid email address.';
+  } else if (!isValidEmail(form.email)) {
+    errors.email = 'Enter a valid email address (e.g. user@example.com).';
   }
+
 
   if (!form.password) {
     errors.password = 'Password is required.';

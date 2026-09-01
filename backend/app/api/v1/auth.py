@@ -168,18 +168,38 @@ def google_callback(
     google_oauth_state: str | None = Cookie(default=None),
     db: Session = Depends(get_db),
 ):
+    from urllib.parse import quote
+
+    if error is not None:
+        return RedirectResponse(
+            url=f"{settings.frontend_url}/auth/google/callback?error={quote(error)}",
+            status_code=302,
+        )
+
     service = AuthService(db)
 
-    token = service.login_with_google(
-        code=code,
-        state_value=state,
-        expected_state=google_oauth_state,
-        error=error,
-    )
+    try:
+        token = service.login_with_google(
+            code=code,
+            state_value=state,
+            expected_state=google_oauth_state,
+            error=error,
+        )
+    except HTTPException as exc:
+        return RedirectResponse(
+            url=f"{settings.frontend_url}/auth/google/callback?error={quote(str(exc.detail))}",
+            status_code=302,
+        )
+    except Exception as exc:
+        return RedirectResponse(
+            url=f"{settings.frontend_url}/auth/google/callback?error={quote(str(exc))}",
+            status_code=302,
+        )
 
-    # Set secure short-lived httpOnly cookie instead of exposing token in URL query parameter
+    is_https = settings.frontend_url.startswith("https") or settings.environment == "production"
+
     redirect_response = RedirectResponse(
-        url=f"{settings.frontend_url}/auth/google/callback",
+        url=f"{settings.frontend_url}/auth/google/callback?token={token.access_token}",
         status_code=302,
     )
     redirect_response.delete_cookie("google_oauth_state")
@@ -189,9 +209,12 @@ def google_callback(
         max_age=300,
         httponly=True,
         samesite="lax",
+        secure=is_https,
+        path="/",
     )
 
     return redirect_response
+
 
 
 @router.post(

@@ -4,10 +4,19 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
+from app.utils.email_validation import validate_and_normalize_email
+
+
 class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
+    email: str
     full_name: str | None = Field(default=None, max_length=100)
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_format(cls, v: str) -> str:
+        return validate_and_normalize_email(v)
+
 
 
 class UserCreate(UserBase):

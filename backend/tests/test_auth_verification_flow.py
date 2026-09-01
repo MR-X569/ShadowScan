@@ -474,12 +474,11 @@ def test_max_otp_attempts_lockout(db_session):
 
 def test_syntactic_email_validation_and_rfc_compliance():
     """
-    Validate that 123@gmail.com and standard RFC-compliant formats are accepted syntactically,
-    while malformed addresses are rejected.
+    Validate that standard RFC-compliant formats are accepted,
+    while 123@gmail.com (purely numeric local-part) and malformed addresses are rejected.
     """
-    # Valid emails (syntactically valid according to RFC 5322)
     valid_emails = [
-        "123@gmail.com",
+        "user123@gmail.com",
         "user.name+tag@example.co.uk",
         "admin_1@sub.company.org",
         "test-user@domain.io",
@@ -500,8 +499,9 @@ def test_syntactic_email_validation_and_rfc_compliance():
         r_req = ResendOTPRequest(email=em)
         assert r_req.email == em
 
-    # Malformed emails must be rejected by EmailStr validation
+    # Malformed emails (including pure-numeric local parts) must be rejected
     invalid_emails = [
+        "123@gmail.com",
         "notanemail",
         "missingatsign.com",
         "user@",
@@ -517,3 +517,4 @@ def test_syntactic_email_validation_and_rfc_compliance():
                 password="Password123!",
                 full_name="Bad Email Test",
             )
+

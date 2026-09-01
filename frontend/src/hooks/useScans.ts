@@ -19,6 +19,8 @@ function computeStats(scans: Scan[]): ScanStats {
   };
 }
 
+import { getToken } from '@/services/auth';
+
 /**
  * Fetches the authenticated user's scan list from GET /scans.
  * Exposes a refresh() callback for re-fetching after a new scan is created.
@@ -29,6 +31,12 @@ export function useScans(): UseScansResult {
   const [error, setError] = useState('');
 
   const fetchScans = useCallback(async () => {
+    if (!getToken()) {
+      setScans([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
@@ -40,6 +48,7 @@ export function useScans(): UseScansResult {
       setLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     fetchScans();

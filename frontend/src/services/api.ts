@@ -31,7 +31,15 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      const publicPaths = ['/login', '/register', '/verify-email', '/forgot-password', '/'];
+      const publicPaths = [
+        '/login',
+        '/register',
+        '/verify-email',
+        '/forgot-password',
+        '/',
+        '/dashboard',
+        '/auth/google/callback',
+      ];
       const isPublicPath = publicPaths.includes(window.location.pathname);
 
       if (!isPublicPath) {
@@ -43,5 +51,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default api;

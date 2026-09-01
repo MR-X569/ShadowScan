@@ -58,12 +58,18 @@ function getSeverityBadge(severity: string) {
   }
 }
 
+import { getToken } from '@/services/auth';
+import { useLocation } from 'react-router-dom';
+
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
+  const locationState = location.state as { targetUrl?: string } | null;
+
+  const { user, loading: authLoading } = useAuth(false);
   const { scans, stats, loading: scansLoading, refresh } = useScans();
 
-  const [targetUrl, setTargetUrl] = useState('');
+  const [targetUrl, setTargetUrl] = useState(locationState?.targetUrl || '');
 
   const [urlError, setUrlError] = useState('');
   const [scanLoading, setScanLoading] = useState(false);
@@ -74,6 +80,7 @@ export default function DashboardPage() {
 
   // Poll for scan updates when any scan is in PENDING or RUNNING status
   useEffect(() => {
+    if (!getToken()) return;
     const hasActiveScans = scans.some(
       (s) => s.status === 'PENDING' || s.status === 'RUNNING'
     );
@@ -88,6 +95,11 @@ export default function DashboardPage() {
   }, [scans, refresh]);
 
   const fetchFindings = async () => {
+    if (!getToken()) {
+      setLatestFindings([]);
+      setFindingsLoading(false);
+      return;
+    }
     try {
       const data = await listAllFindings();
       setLatestFindings(data.slice(0, 5));
@@ -100,7 +112,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchFindings();
-  }, []);
+  }, [user]);
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTargetUrl(e.target.value);
@@ -121,6 +133,18 @@ export default function DashboardPage() {
       return;
     }
 
+    // Enforce authentication at scan start
+    const token = getToken();
+    if (!token || !user) {
+      navigate('/login', {
+        state: {
+          redirect: '/dashboard',
+          targetUrl: trimmed,
+        },
+      });
+      return;
+    }
+
     setScanLoading(true);
     setScanError('');
     setScanSuccess('');
@@ -133,6 +157,12 @@ export default function DashboardPage() {
       fetchFindings();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          navigate('/login', {
+            state: { redirect: '/dashboard', targetUrl: trimmed },
+          });
+          return;
+        }
         const detail = err.response?.data?.detail;
         if (typeof detail === 'string') {
           setScanError(detail);
@@ -165,12 +195,23 @@ export default function DashboardPage() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-brand-text sm:text-3xl">
-            Welcome back, <span className="text-brand-cyan">{displayName}</span>
+            {user ? (
+              <>
+                Welcome back, <span className="text-brand-cyan">{displayName}</span>
+              </>
+            ) : (
+              <>
+                Welcome to <span className="text-brand-cyan">ShadowScan</span>
+              </>
+            )}
           </h1>
           <p className="mt-1 text-sm text-brand-subtle">
-            Overview of your vulnerability scan activity and security posture.
+            {user
+              ? 'Overview of your vulnerability scan activity and security posture.'
+              : 'Enterprise-grade vulnerability scanner and automated AI security assessment.'}
           </p>
         </div>
+
 
         {/* Stats Grid */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

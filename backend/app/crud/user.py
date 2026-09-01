@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -7,9 +8,12 @@ def get_user_by_username(
     db: Session,
     username: str,
 ) -> User | None:
+    if not username:
+        return None
+    cleaned = username.strip()
     return (
         db.query(User)
-        .filter(User.username == username)
+        .filter(func.lower(User.username) == cleaned.lower())
         .first()
     )
 
@@ -18,9 +22,12 @@ def get_user_by_email(
     db: Session,
     email: str,
 ) -> User | None:
+    if not email:
+        return None
+    cleaned = email.strip().lower()
     return (
         db.query(User)
-        .filter(User.email == email)
+        .filter(func.lower(User.email) == cleaned)
         .first()
     )
 

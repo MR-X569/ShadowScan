@@ -78,20 +78,39 @@ export default function AppHeader({ user }: AppHeaderProps) {
           })}
         </nav>
 
-        {/* Desktop User Info & Logout */}
+        {/* Desktop User Info & Auth Actions */}
         <div className="hidden items-center gap-3 md:flex">
-          {user?.email && (
-            <span className="text-sm text-brand-subtle">
-              {user.email}
-            </span>
+          {user ? (
+            <>
+              {user.email && (
+                <span className="text-sm text-brand-subtle">
+                  {user.email}
+                </span>
+              )}
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 rounded-lg border border-brand-border px-3 py-2 text-sm font-medium text-brand-subtle transition-all duration-200 hover:border-red-500/30 hover:text-red-400"
+              >
+                <LogOut size={14} />
+                Logout
+              </button>
+            </>
+          ) : (
+            <div className="flex items-center gap-2.5">
+              <Link
+                to="/login"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-brand-subtle transition-colors hover:text-brand-text"
+              >
+                Log In
+              </Link>
+              <Link
+                to="/register"
+                className="rounded-lg bg-brand-cyan px-3.5 py-2 text-sm font-semibold text-brand-bg shadow-btn-cyan transition-all duration-200 hover:bg-cyan-300"
+              >
+                Get Started
+              </Link>
+            </div>
           )}
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 rounded-lg border border-brand-border px-3 py-2 text-sm font-medium text-brand-subtle transition-all duration-200 hover:border-red-500/30 hover:text-red-400"
-          >
-            <LogOut size={14} />
-            Logout
-          </button>
         </div>
 
         {/* Mobile Menu Button */}
@@ -109,42 +128,64 @@ export default function AppHeader({ user }: AppHeaderProps) {
       {mobileMenuOpen && (
         <div className="border-t border-brand-border bg-brand-surface px-4 py-4 md:hidden">
           <nav className="flex flex-col gap-1">
-            {[...navItems, ...(user?.role === 'ADMIN' ? [adminNavItem] : [])].map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-brand-cyan/10 text-brand-cyan'
-                      : 'text-brand-subtle hover:bg-brand-card hover:text-brand-text'
-                  }`}
-                >
-                  <Icon size={16} />
-                  {item.label}
-                </Link>
-              );
-            })}
+            {user &&
+              [...navItems, ...(user?.role === 'ADMIN' ? [adminNavItem] : [])].map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-brand-cyan/10 text-brand-cyan'
+                        : 'text-brand-subtle hover:bg-brand-card hover:text-brand-text'
+                    }`}
+                  >
+                    <Icon size={16} />
+                    {item.label}
+                  </Link>
+                );
+              })}
 
             <div className="mt-3 border-t border-brand-border pt-3">
-              {user?.email && (
-                <p className="px-3 py-1 text-xs text-brand-muted truncate">
-                  Signed in as <span className="font-semibold text-brand-text">{user.email}</span>
-                </p>
+              {user ? (
+                <>
+                  {user.email && (
+                    <p className="px-3 py-1 text-xs text-brand-muted truncate">
+                      Signed in as <span className="font-semibold text-brand-text">{user.email}</span>
+                    </p>
+                  )}
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex w-full items-center justify-center rounded-lg border border-brand-border px-3 py-2 text-sm font-medium text-brand-text"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex w-full items-center justify-center rounded-lg bg-brand-cyan px-3 py-2 text-sm font-semibold text-brand-bg"
+                  >
+                    Create Account
+                  </Link>
+                </div>
               )}
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleLogout();
-                }}
-                className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10"
-              >
-                <LogOut size={16} />
-                Logout
-              </button>
             </div>
           </nav>
         </div>
@@ -152,3 +193,4 @@ export default function AppHeader({ user }: AppHeaderProps) {
     </header>
   );
 }
+

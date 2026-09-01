@@ -40,8 +40,10 @@ function NotFound() {
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<LandingPage />} />
+      {/* Primary entry route -> Dashboard */}
+      <Route path="/" element={<DashboardPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
@@ -49,14 +51,7 @@ export default function AppRoutes() {
       <Route path="/auth/google/callback" element={<AuthCallbackPage />} />
 
       {/* Protected routes */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
+
       <Route
         path="/scans"
         element={

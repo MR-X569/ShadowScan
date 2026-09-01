@@ -18,7 +18,10 @@ services:
       redis:
         condition: service_healthy
     networks: [edge, data]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     init: true
+
     stop_grace_period: 30s
     read_only: true
     tmpfs:
