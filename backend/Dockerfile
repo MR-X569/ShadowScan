@@ -10,12 +10,13 @@ WORKDIR /app
 
 COPY backend/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt \
-    && python -m playwright install --with-deps chromium \
+    && python -m playwright install --with-deps chromium-headless-shell \
     && rm -rf /root/.cache /tmp/* /var/lib/apt/lists/* \
     && groupadd --gid 10001 shadowscan \
     && useradd --uid 10001 --gid shadowscan --create-home --shell /usr/sbin/nologin shadowscan \
     && chown -R shadowscan:shadowscan /app /home/shadowscan /ms-playwright \
     && chmod -R 755 /ms-playwright
+
 
 
 COPY --chown=shadowscan:shadowscan backend/ /app/
